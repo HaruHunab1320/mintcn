@@ -37,6 +37,26 @@ describe('loadProject (end-to-end against fixtures/shadcn-app)', () => {
     expect(doc.tokens.radius.base).toBe('0.625rem');
   });
 
+  it('reads font-family tokens from @theme inline', () => {
+    const doc = loadProject({ rootDir: FIXTURE_ROOT });
+    expect(doc.tokens.typography.fontFamily.sans).toBe(
+      '"Inter", ui-sans-serif, system-ui, sans-serif',
+    );
+    expect(doc.tokens.typography.fontFamily.serif).toBe(
+      'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
+    );
+    expect(doc.tokens.typography.fontFamily.mono).toBe(
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+    );
+  });
+
+  it('reads --shadow-* tokens from @theme inline', () => {
+    const doc = loadProject({ rootDir: FIXTURE_ROOT });
+    expect(Object.keys(doc.tokens.shadows)).toEqual(['sm', 'md', 'lg']);
+    expect(doc.tokens.shadows.sm).toBe('0 1px 2px 0 rgb(0 0 0 / 0.05)');
+    expect(doc.tokens.shadows.lg).toContain('0 10px 15px -3px');
+  });
+
   it('discovers all four fixture components', () => {
     const doc = loadProject({ rootDir: FIXTURE_ROOT });
     const ids = doc.components.map((c) => c.id).sort();

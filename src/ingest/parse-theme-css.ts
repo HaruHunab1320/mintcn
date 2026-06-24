@@ -11,6 +11,12 @@ interface RootBlock {
   vars: Map<string, string>;
 }
 
+const DEFAULT_FONT_FAMILIES = {
+  sans: 'ui-sans-serif, system-ui, sans-serif',
+  serif: 'ui-serif, Georgia, serif',
+  mono: 'ui-monospace, SFMono-Regular, monospace',
+} as const;
+
 function collectVars(container: Container): Map<string, string> {
   const out = new Map<string, string>();
   container.walkDecls((decl: Declaration) => {
@@ -45,14 +51,44 @@ function walkBaseLayer(root: Container, onRule: (rule: Rule) => void): void {
   });
 }
 
+/** Collect declarations from every `@theme inline { ... }` block. */
+function collectThemeInlineVars(root: Container): Map<string, string> {
+  const out = new Map<string, string>();
+  root.walkAtRules('theme', (theme: AtRule) => {
+    if (theme.params.trim() !== 'inline') return;
+    for (const [k, v] of collectVars(theme)) out.set(k, v);
+  });
+  return out;
+}
+
+function extractFontFamilies(
+  themeVars: Map<string, string>,
+): TokenState['typography']['fontFamily'] {
+  return {
+    sans: themeVars.get('font-sans') ?? DEFAULT_FONT_FAMILIES.sans,
+    serif: themeVars.get('font-serif') ?? DEFAULT_FONT_FAMILIES.serif,
+    mono: themeVars.get('font-mono') ?? DEFAULT_FONT_FAMILIES.mono,
+  };
+}
+
+function extractShadows(themeVars: Map<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of themeVars) {
+    if (k.startsWith('shadow-')) out[k.slice('shadow-'.length)] = v;
+  }
+  return out;
+}
+
 export interface ParsedThemeCss {
   tokens: TokenState;
 }
 
 /**
- * Read the shadcn theme CSS — `@layer base { :root { ... } .dark { ... } }` —
- * into a TokenState. Variable values are preserved verbatim so a round-trip
- * (ingest → emit) reproduces the source byte-for-byte.
+ * Read the shadcn theme CSS into a TokenState. Two source blocks are walked:
+ * `@layer base { :root, .dark }` for the semantic-color and radius tokens,
+ * and `@theme inline { ... }` for typography (`--font-sans/serif/mono`) and
+ * shadows (`--shadow-*`). Values are preserved verbatim so ingest -> emit
+ * reproduces the source byte-for-byte.
  */
 export function parseThemeCss(cssText: string): ParsedThemeCss {
   const root = postcss.parse(cssText);
@@ -74,6 +110,8 @@ export function parseThemeCss(cssText: string): ParsedThemeCss {
     throw new Error('parse-theme-css: missing --radius declaration in :root');
   }
 
+  const themeVars = collectThemeInlineVars(root);
+
   const tokens: TokenState = {
     colors: {
       light: buildColorMap(light.vars),
@@ -81,15 +119,11 @@ export function parseThemeCss(cssText: string): ParsedThemeCss {
     },
     radius: { base: radius },
     typography: {
-      fontFamily: {
-        sans: 'ui-sans-serif, system-ui, sans-serif',
-        serif: 'ui-serif, Georgia, serif',
-        mono: 'ui-monospace, SFMono-Regular, monospace',
-      },
+      fontFamily: extractFontFamilies(themeVars),
       scale: [],
     },
     spacing: [],
-    shadows: {},
+    shadows: extractShadows(themeVars),
     borders: { width: {} },
   };
 

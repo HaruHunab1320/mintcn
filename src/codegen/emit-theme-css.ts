@@ -32,7 +32,13 @@ export function emitThemeCss(doc: ProjectDocument): string {
   lines.push('@custom-variant dark (&:is(.dark *));');
   lines.push('');
 
+  const { fontFamily } = doc.tokens.typography;
+  const shadowKeys = Object.keys(doc.tokens.shadows);
+
   lines.push('@theme inline {');
+  lines.push(`  --font-sans: ${fontFamily.sans};`);
+  lines.push(`  --font-serif: ${fontFamily.serif};`);
+  lines.push(`  --font-mono: ${fontFamily.mono};`);
   for (const token of SEMANTIC_COLOR_TOKENS) {
     lines.push(`  --color-${token}: var(--${token});`);
   }
@@ -40,6 +46,9 @@ export function emitThemeCss(doc: ProjectDocument): string {
   lines.push('  --radius-md: calc(var(--radius) - 2px);');
   lines.push('  --radius-lg: var(--radius);');
   lines.push('  --radius-xl: calc(var(--radius) + 4px);');
+  for (const name of shadowKeys) {
+    lines.push(`  --shadow-${name}: ${doc.tokens.shadows[name]};`);
+  }
   lines.push('}');
   lines.push('');
 

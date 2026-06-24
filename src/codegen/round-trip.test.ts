@@ -128,6 +128,50 @@ describe('token edit isolation', () => {
   });
 });
 
+describe('typography + shadows', () => {
+  it('changing --font-sans only changes that line', () => {
+    const doc = loadProject({ rootDir: FIXTURE_ROOT });
+    const before = emitThemeCss(doc);
+    const mutated = {
+      ...doc,
+      tokens: {
+        ...doc.tokens,
+        typography: {
+          ...doc.tokens.typography,
+          fontFamily: { ...doc.tokens.typography.fontFamily, sans: '"Geist", sans-serif' },
+        },
+      },
+    };
+    const after = emitThemeCss(mutated);
+    const diff = emitDiff({ filename: 'app/globals.css', original: before, emitted: after });
+    const changedLines = diff
+      .split('\n')
+      .filter(
+        (l) =>
+          (l.startsWith('+') || l.startsWith('-')) && !l.startsWith('+++') && !l.startsWith('---'),
+      );
+    expect(changedLines).toHaveLength(2);
+    expect(changedLines.every((l) => l.includes('--font-sans:'))).toBe(true);
+  });
+
+  it('adding a new shadow appends a line in @theme inline without disturbing others', () => {
+    const doc = loadProject({ rootDir: FIXTURE_ROOT });
+    const before = emitThemeCss(doc);
+    const mutated = {
+      ...doc,
+      tokens: {
+        ...doc.tokens,
+        shadows: { ...doc.tokens.shadows, xl: '0 20px 25px -5px rgb(0 0 0 / 0.1)' },
+      },
+    };
+    const after = emitThemeCss(mutated);
+    const diff = emitDiff({ filename: 'app/globals.css', original: before, emitted: after });
+    const added = diff.split('\n').filter((l) => l.startsWith('+') && !l.startsWith('+++'));
+    expect(added).toHaveLength(1);
+    expect(added[0]).toContain('--shadow-xl:');
+  });
+});
+
 describe('cva rewrite', () => {
   it('a class delta on button size.sm changes only that variant option', () => {
     const buttonPath = path.join(FIXTURE_ROOT, 'components/ui/button.tsx');
