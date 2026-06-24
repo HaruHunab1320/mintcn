@@ -15,8 +15,8 @@ export const ComponentsJsonShapeSchema = z.object({
   iconLibrary: z.string().optional(),
   aliases: z.object({
     components: z.string().min(1),
-    ui: z.string().min(1),
     utils: z.string().min(1),
+    ui: z.string().min(1),
     lib: z.string().min(1),
     hooks: z.string().min(1),
   }),
