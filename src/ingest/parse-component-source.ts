@@ -50,12 +50,25 @@ function getObjectLiteralProperty(
   return prop.asKind(SyntaxKind.PropertyAssignment);
 }
 
+/**
+ * For string-literal keys like `"icon-xs": "..."`, `getName()` returns the
+ * raw text including the quotes. Unwrap so consumers see the bare key.
+ */
+function propertyKeyName(pa: PropertyAssignment): string {
+  const nameNode = pa.getNameNode();
+  const stringLit =
+    nameNode.asKind(SyntaxKind.StringLiteral) ??
+    nameNode.asKind(SyntaxKind.NoSubstitutionTemplateLiteral);
+  if (stringLit) return stringLit.getLiteralText();
+  return pa.getName();
+}
+
 function objectLiteralStringMap(obj: ObjectLiteralExpression): Map<string, string> {
   const out = new Map<string, string>();
   for (const prop of obj.getProperties()) {
     const pa = prop.asKind(SyntaxKind.PropertyAssignment);
     if (!pa) continue;
-    const key = pa.getName();
+    const key = propertyKeyName(pa);
     const init = pa.getInitializer();
     if (!init) continue;
     if (init.getKind() === SyntaxKind.StringLiteral) {
@@ -105,7 +118,7 @@ function extractCva(call: CallExpression): CvaExtraction {
       for (const axisProp of variantsObj.getProperties()) {
         const pa = axisProp.asKind(SyntaxKind.PropertyAssignment);
         if (!pa) continue;
-        const axisName = pa.getName();
+        const axisName = propertyKeyName(pa);
         const optionsObj = pa.getInitializerIfKind(SyntaxKind.ObjectLiteralExpression);
         if (!optionsObj) continue;
         const optionMap = objectLiteralStringMap(optionsObj);

@@ -57,10 +57,15 @@ describe('loadProject (end-to-end against fixtures/shadcn-app)', () => {
     expect(doc.tokens.shadows.lg).toContain('0 10px 15px -3px');
   });
 
-  it('discovers all four fixture components', () => {
+  it('discovers the full shadcn/ui v4 fixture set', () => {
     const doc = loadProject({ rootDir: FIXTURE_ROOT });
-    const ids = doc.components.map((c) => c.id).sort();
-    expect(ids).toEqual(['badge', 'button', 'card', 'input']);
+    const ids = doc.components.map((c) => c.id);
+    expect(ids).toContain('button');
+    expect(ids).toContain('card');
+    expect(ids).toContain('dialog');
+    expect(ids).toContain('dropdown-menu');
+    expect(ids).toContain('tooltip');
+    expect(ids.length).toBeGreaterThanOrEqual(45);
   });
 
   it('extracts button cva variants with correct defaults', () => {
@@ -78,7 +83,17 @@ describe('loadProject (end-to-end against fixtures/shadcn-app)', () => {
     ]);
     expect(variantAxis?.default).toBe('default');
     const sizeAxis = button?.variants.find((v) => v.name === 'size');
-    expect(sizeAxis?.options).toEqual(['default', 'sm', 'lg', 'icon']);
+    // v4 button adds xs and three icon-* sizes alongside the standard set.
+    expect(sizeAxis?.options).toEqual([
+      'default',
+      'xs',
+      'sm',
+      'lg',
+      'icon',
+      'icon-xs',
+      'icon-sm',
+      'icon-lg',
+    ]);
     expect(sizeAxis?.default).toBe('default');
   });
 

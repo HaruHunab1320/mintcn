@@ -191,7 +191,7 @@ describe('cva rewrite', () => {
 
     expect(emitted).not.toBe(original);
     // Only the sm option's class string should differ; px-3 → px-4.
-    expect(emitted.includes('h-8 rounded-md px-4 has-[>svg]:px-2.5')).toBe(true);
+    expect(emitted.includes('h-8 gap-1.5 rounded-md px-4 has-[>svg]:px-2.5')).toBe(true);
     // Default size is untouched
     expect(emitted.includes('h-9 px-4 py-2 has-[>svg]:px-3')).toBe(true);
     // lg size is untouched
