@@ -1,9 +1,11 @@
 import postcss, { type AtRule, type Container, type Declaration, type Rule } from 'postcss';
 import {
+  type AnimationTokens,
   type ColorMap,
   type ColorValue,
   isSemanticColorToken,
   type SemanticColorToken,
+  type StateTokens,
   type TokenState,
 } from '../schema';
 
@@ -79,8 +81,75 @@ function extractShadows(themeVars: Map<string, string>): Record<string, string> 
   return out;
 }
 
+const STATE_KEYS = [
+  'hover-opacity',
+  'focus-ring-width',
+  'focus-ring-opacity',
+  'active-scale',
+  'disabled-opacity',
+] as const;
+
+const DEFAULT_STATE_TOKENS: StateTokens = {
+  hoverOpacity: 0.9,
+  focusRingWidth: '3px',
+  focusRingOpacity: 0.5,
+  activeScale: 0.97,
+  disabledOpacity: 0.5,
+};
+
+function parseNumber(raw: string | undefined, fallback: number): number {
+  if (raw === undefined) return fallback;
+  const n = Number.parseFloat(raw);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+/**
+ * Returns undefined when none of the state-token vars were present, so emit
+ * round-trips cleanly for vanilla shadcn projects (which don't ship them).
+ * Returns a fully-populated object otherwise — missing pieces fall back to
+ * the same defaults shadcn-init would produce.
+ */
+function extractStateTokens(themeVars: Map<string, string>): StateTokens | undefined {
+  if (!STATE_KEYS.some((k) => themeVars.has(k))) return undefined;
+  return {
+    hoverOpacity: parseNumber(themeVars.get('hover-opacity'), DEFAULT_STATE_TOKENS.hoverOpacity),
+    focusRingWidth: themeVars.get('focus-ring-width') ?? DEFAULT_STATE_TOKENS.focusRingWidth,
+    focusRingOpacity: parseNumber(
+      themeVars.get('focus-ring-opacity'),
+      DEFAULT_STATE_TOKENS.focusRingOpacity,
+    ),
+    activeScale: parseNumber(themeVars.get('active-scale'), DEFAULT_STATE_TOKENS.activeScale),
+    disabledOpacity: parseNumber(
+      themeVars.get('disabled-opacity'),
+      DEFAULT_STATE_TOKENS.disabledOpacity,
+    ),
+  };
+}
+
+function extractAnimationTokens(themeVars: Map<string, string>): AnimationTokens | undefined {
+  const durations: Record<string, string> = {};
+  const easings: Record<string, string> = {};
+  for (const [k, v] of themeVars) {
+    if (k.startsWith('duration-')) durations[k.slice('duration-'.length)] = v;
+    else if (k.startsWith('ease-')) easings[k.slice('ease-'.length)] = v;
+  }
+  if (Object.keys(durations).length === 0 && Object.keys(easings).length === 0) return undefined;
+  return { durations, easings };
+}
+
+function extractThemeImports(root: Container): string[] {
+  const out: string[] = [];
+  root.walkAtRules('import', (atRule: AtRule) => {
+    // params is the raw value after @import, e.g. "tailwindcss" or 'tailwindcss'
+    const m = atRule.params.trim().match(/^['"]([^'"]+)['"]$/);
+    if (m) out.push(m[1]);
+  });
+  return out;
+}
+
 export interface ParsedThemeCss {
   tokens: TokenState;
+  themeImports: string[];
 }
 
 /**
@@ -125,7 +194,9 @@ export function parseThemeCss(cssText: string): ParsedThemeCss {
     spacing: [],
     shadows: extractShadows(themeVars),
     borders: { width: {} },
+    states: extractStateTokens(themeVars),
+    animations: extractAnimationTokens(themeVars),
   };
 
-  return { tokens };
+  return { tokens, themeImports: extractThemeImports(root) };
 }

@@ -27,13 +27,16 @@ function colorDeclLines(map: TokenState['colors']['light'], indent: string): str
 export function emitThemeCss(doc: ProjectDocument): string {
   const lines: string[] = [];
 
-  lines.push('@import "tailwindcss";');
+  const imports = doc.meta.themeImports.length > 0 ? doc.meta.themeImports : ['tailwindcss'];
+  for (const name of imports) lines.push(`@import "${name}";`);
   lines.push('');
   lines.push('@custom-variant dark (&:is(.dark *));');
   lines.push('');
 
   const { fontFamily } = doc.tokens.typography;
   const shadowKeys = Object.keys(doc.tokens.shadows);
+  const animations = doc.tokens.animations;
+  const states = doc.tokens.states;
 
   lines.push('@theme inline {');
   lines.push(`  --font-sans: ${fontFamily.sans};`);
@@ -48,6 +51,21 @@ export function emitThemeCss(doc: ProjectDocument): string {
   lines.push('  --radius-xl: calc(var(--radius) + 4px);');
   for (const name of shadowKeys) {
     lines.push(`  --shadow-${name}: ${doc.tokens.shadows[name]};`);
+  }
+  if (animations) {
+    for (const name of Object.keys(animations.durations)) {
+      lines.push(`  --duration-${name}: ${animations.durations[name]};`);
+    }
+    for (const name of Object.keys(animations.easings)) {
+      lines.push(`  --ease-${name}: ${animations.easings[name]};`);
+    }
+  }
+  if (states) {
+    lines.push(`  --hover-opacity: ${states.hoverOpacity};`);
+    lines.push(`  --focus-ring-width: ${states.focusRingWidth};`);
+    lines.push(`  --focus-ring-opacity: ${states.focusRingOpacity};`);
+    lines.push(`  --active-scale: ${states.activeScale};`);
+    lines.push(`  --disabled-opacity: ${states.disabledOpacity};`);
   }
   lines.push('}');
   lines.push('');

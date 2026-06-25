@@ -172,6 +172,71 @@ describe('typography + shadows', () => {
   });
 });
 
+describe('states + animations', () => {
+  it('changing --hover-opacity only changes that line', () => {
+    const doc = loadProject({ rootDir: FIXTURE_ROOT });
+    if (!doc.tokens.states) throw new Error('expected states tokens in fixture');
+    const before = emitThemeCss(doc);
+    const mutated = {
+      ...doc,
+      tokens: { ...doc.tokens, states: { ...doc.tokens.states, hoverOpacity: 0.75 } },
+    };
+    const after = emitThemeCss(mutated);
+    const diff = emitDiff({ filename: 'app/globals.css', original: before, emitted: after });
+    const changedLines = diff
+      .split('\n')
+      .filter(
+        (l) =>
+          (l.startsWith('+') || l.startsWith('-')) && !l.startsWith('+++') && !l.startsWith('---'),
+      );
+    expect(changedLines).toHaveLength(2);
+    expect(changedLines.every((l) => l.includes('--hover-opacity:'))).toBe(true);
+  });
+
+  it('changing --duration-normal only changes that line', () => {
+    const doc = loadProject({ rootDir: FIXTURE_ROOT });
+    if (!doc.tokens.animations) throw new Error('expected animation tokens in fixture');
+    const before = emitThemeCss(doc);
+    const mutated = {
+      ...doc,
+      tokens: {
+        ...doc.tokens,
+        animations: {
+          ...doc.tokens.animations,
+          durations: { ...doc.tokens.animations.durations, normal: '250ms' },
+        },
+      },
+    };
+    const after = emitThemeCss(mutated);
+    const diff = emitDiff({ filename: 'app/globals.css', original: before, emitted: after });
+    const changedLines = diff
+      .split('\n')
+      .filter(
+        (l) =>
+          (l.startsWith('+') || l.startsWith('-')) && !l.startsWith('+++') && !l.startsWith('---'),
+      );
+    expect(changedLines).toHaveLength(2);
+    expect(changedLines.every((l) => l.includes('--duration-normal:'))).toBe(true);
+  });
+
+  it('a document with no states/animations does not emit those blocks', () => {
+    const doc = loadProject({ rootDir: FIXTURE_ROOT });
+    const stripped = {
+      ...doc,
+      meta: {
+        ...doc.meta,
+        themeImports: doc.meta.themeImports.filter((i) => i !== 'tw-animate-css'),
+      },
+      tokens: { ...doc.tokens, states: undefined, animations: undefined },
+    };
+    const emitted = emitThemeCss(stripped);
+    expect(emitted).not.toContain('--hover-opacity');
+    expect(emitted).not.toContain('--duration-');
+    expect(emitted).not.toContain('--ease-');
+    expect(emitted).not.toContain('tw-animate-css');
+  });
+});
+
 describe('cva rewrite', () => {
   it('a class delta on button size.sm changes only that variant option', () => {
     const buttonPath = path.join(FIXTURE_ROOT, 'components/ui/button.tsx');

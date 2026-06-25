@@ -34,6 +34,7 @@ export function buildValidDocument(): ProjectDocument {
           hooks: '@/hooks',
         },
       },
+      themeImports: ['tailwindcss'],
     },
     tokens: {
       colors: {
@@ -52,6 +53,14 @@ export function buildValidDocument(): ProjectDocument {
       spacing: [],
       shadows: {},
       borders: { width: {} },
+      states: {
+        hoverOpacity: 0.9,
+        focusRingWidth: '3px',
+        focusRingOpacity: 0.5,
+        activeScale: 0.97,
+        disabledOpacity: 0.5,
+      },
+      animations: { durations: {}, easings: {} },
     },
     components: [
       {

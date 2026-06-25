@@ -57,6 +57,32 @@ describe('loadProject (end-to-end against fixtures/shadcn-app)', () => {
     expect(doc.tokens.shadows.lg).toContain('0 10px 15px -3px');
   });
 
+  it('reads state tokens from @theme inline', () => {
+    const doc = loadProject({ rootDir: FIXTURE_ROOT });
+    expect(doc.tokens.states).toBeDefined();
+    expect(doc.tokens.states?.hoverOpacity).toBe(0.9);
+    expect(doc.tokens.states?.focusRingWidth).toBe('3px');
+    expect(doc.tokens.states?.focusRingOpacity).toBe(0.5);
+    expect(doc.tokens.states?.activeScale).toBe(0.97);
+    expect(doc.tokens.states?.disabledOpacity).toBe(0.5);
+  });
+
+  it('reads --duration-* and --ease-* animation tokens', () => {
+    const doc = loadProject({ rootDir: FIXTURE_ROOT });
+    expect(doc.tokens.animations).toBeDefined();
+    expect(doc.tokens.animations?.durations).toEqual({
+      fast: '150ms',
+      normal: '200ms',
+      slow: '300ms',
+    });
+    expect(doc.tokens.animations?.easings.out).toBe('cubic-bezier(0.16, 1, 0.3, 1)');
+  });
+
+  it('captures @import statements in meta.themeImports', () => {
+    const doc = loadProject({ rootDir: FIXTURE_ROOT });
+    expect(doc.meta.themeImports).toEqual(['tailwindcss', 'tw-animate-css']);
+  });
+
   it('discovers the full shadcn/ui v4 fixture set', () => {
     const doc = loadProject({ rootDir: FIXTURE_ROOT });
     const ids = doc.components.map((c) => c.id);

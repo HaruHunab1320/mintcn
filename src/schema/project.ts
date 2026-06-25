@@ -19,6 +19,13 @@ export const ProjectDocumentSchema = z
       baseColor: z.enum(BASE_COLORS),
       colorSpace: z.enum(COLOR_SPACES),
       config: ComponentsJsonShapeSchema,
+      /**
+       * Ordered list of `@import "..."` package names from the theme CSS
+       * (e.g. `tailwindcss`, `tw-animate-css`). Captured so round-trip emit
+       * reproduces the source byte-for-byte even when projects import
+       * animation/utility libraries beyond the default tailwindcss.
+       */
+      themeImports: z.array(z.string().min(1)),
     }),
     tokens: TokenStateSchema,
     components: z.array(ComponentMetaSchema),

@@ -44,6 +44,32 @@ export const ScaleEntrySchema = z.object({
 });
 export type ScaleEntry = z.infer<typeof ScaleEntrySchema>;
 
+/**
+ * Default values + bounds for the interactive-state tokens. These are *defaults
+ * the override editor reads from* — they do not retroactively change canonical
+ * shadcn class strings like `hover:bg-primary/90`. See Path A in the design
+ * notes: globals guide bulk edits; per-component overrides do the surgery.
+ */
+export const StateTokensSchema = z.object({
+  hoverOpacity: z.number().min(0).max(1),
+  focusRingWidth: z.string().min(1),
+  focusRingOpacity: z.number().min(0).max(1),
+  activeScale: z.number().min(0).max(2),
+  disabledOpacity: z.number().min(0).max(1),
+});
+export type StateTokens = z.infer<typeof StateTokensSchema>;
+
+/**
+ * Animation tokens. Tailwind v4 reads `--duration-*` and `--ease-*` from
+ * `@theme` natively, so any utility named `duration-fast` / `ease-out` etc.
+ * resolves through these. Keyframes are addressed in a later milestone.
+ */
+export const AnimationTokensSchema = z.object({
+  durations: z.record(z.string(), z.string()),
+  easings: z.record(z.string(), z.string()),
+});
+export type AnimationTokens = z.infer<typeof AnimationTokensSchema>;
+
 export const TokenStateSchema = z.object({
   colors: z.object({
     light: ColorMapSchema,
@@ -65,5 +91,7 @@ export const TokenStateSchema = z.object({
   borders: z.object({
     width: z.record(z.string(), z.string()),
   }),
+  states: StateTokensSchema.optional(),
+  animations: AnimationTokensSchema.optional(),
 });
 export type TokenState = z.infer<typeof TokenStateSchema>;

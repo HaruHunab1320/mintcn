@@ -50,7 +50,7 @@ export function loadProject(opts: LoadProjectOptions): ProjectDocument {
   const componentsJson = parseComponentsJson(fs.readFileSync(componentsJsonPath, 'utf8'));
 
   const cssPath = path.join(rootDir, componentsJson.tailwind.css);
-  const { tokens } = parseThemeCss(fs.readFileSync(cssPath, 'utf8'));
+  const { tokens, themeImports } = parseThemeCss(fs.readFileSync(cssPath, 'utf8'));
 
   const components = loadComponents(rootDir);
 
@@ -61,6 +61,7 @@ export function loadProject(opts: LoadProjectOptions): ProjectDocument {
       baseColor: componentsJson.tailwind.baseColor as ProjectDocument['meta']['baseColor'],
       colorSpace: 'oklch',
       config: componentsJson,
+      themeImports,
     },
     tokens,
     components,
