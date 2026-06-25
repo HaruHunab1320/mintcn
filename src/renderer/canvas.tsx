@@ -53,6 +53,7 @@ import { Textarea } from '../../fixtures/shadcn-app/components/ui/textarea';
 import { Toggle } from '../../fixtures/shadcn-app/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '../../fixtures/shadcn-app/components/ui/toggle-group';
 import { PreviewRoot, type PreviewTheme } from './preview-root';
+import { type ForceState, useForceState } from './use-force-state';
 
 interface ThemeToggleProps {
   theme: PreviewTheme;
@@ -74,6 +75,42 @@ function ThemeToggle({ theme, onChange }: ThemeToggleProps) {
           }`}
         >
           {t}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const FORCE_STATE_LABELS: Record<ForceState, string> = {
+  off: 'off',
+  hover: 'hover',
+  'focus-visible': 'focus',
+  active: 'active',
+  disabled: 'disabled',
+};
+
+interface ForceStateToggleProps {
+  value: ForceState;
+  onChange: (next: ForceState) => void;
+}
+
+function ForceStateToggle({ value, onChange }: ForceStateToggleProps) {
+  const options: ForceState[] = ['off', 'hover', 'focus-visible', 'active', 'disabled'];
+  return (
+    <div className="inline-flex items-center gap-1 rounded-md border border-neutral-800 p-1 text-xs">
+      <span className="px-1.5 text-[10px] uppercase tracking-wide text-neutral-500">force</span>
+      {options.map((s) => (
+        <button
+          key={s}
+          type="button"
+          onClick={() => onChange(s)}
+          className={`rounded px-2 py-1 transition-colors ${
+            value === s
+              ? 'bg-neutral-100 text-neutral-900'
+              : 'text-neutral-400 hover:text-neutral-100'
+          }`}
+        >
+          {FORCE_STATE_LABELS[s]}
         </button>
       ))}
     </div>
@@ -377,19 +414,28 @@ interface CanvasProps {
  */
 export function Canvas({ document }: CanvasProps) {
   const [theme, setTheme] = useState<PreviewTheme>('light');
+  const [forceState, setForceState] = useForceState();
 
   return (
     <section className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-sm font-medium text-neutral-200">Preview</h2>
-        <ThemeToggle theme={theme} onChange={setTheme} />
+        <div className="flex flex-wrap items-center gap-2">
+          <ForceStateToggle value={forceState} onChange={setForceState} />
+          <ThemeToggle theme={theme} onChange={setTheme} />
+        </div>
       </div>
 
       <div
         className="overflow-auto resize-x min-w-[320px] max-w-full rounded-lg border border-neutral-800"
         style={{ resize: 'horizontal', width: '100%' }}
       >
-        <PreviewRoot document={document} theme={theme} className="min-h-[480px] p-8">
+        <PreviewRoot
+          document={document}
+          theme={theme}
+          forceState={forceState}
+          className="min-h-[480px] p-8"
+        >
           <div className="flex flex-col gap-10">
             <ButtonsShowcase />
             <BadgesShowcase />

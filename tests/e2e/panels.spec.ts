@@ -54,7 +54,9 @@ test('typography panel: editing --font-sans flows into the document', async ({ p
 test('component panel: switching components updates the inspector', async ({ page }) => {
   await page.goto('/');
   const select = page.locator('select');
-  await expect(select).toHaveValue('badge');
+  // The component selector defaults to the first option in alphabetical order;
+  // with the full v4 fixture that's `accordion`.
+  await expect(select).toHaveValue('accordion');
 
   await select.selectOption('button');
   await expect(page.getByText('components/ui/button.tsx', { exact: false })).toBeVisible();

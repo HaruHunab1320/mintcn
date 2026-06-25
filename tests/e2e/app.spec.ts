@@ -5,10 +5,10 @@ test('preview renders fixture components in light theme', async ({ page }) => {
 
   // Header shows the project metadata pulled from ingest.
   await expect(page.getByRole('heading', { name: 'Tincture' })).toBeVisible();
-  await expect(page.getByText(/shadcn-app · slate · 4 components/)).toBeVisible();
+  await expect(page.getByText(/shadcn-app · slate · 46 components/)).toBeVisible();
 
-  // The four component sections are all visible.
-  for (const heading of ['Buttons', 'Badges', 'Input', 'Card']) {
+  // The canvas showroom sections are all visible.
+  for (const heading of ['Buttons', 'Badges', 'Form controls', 'Cards & data display']) {
     await expect(page.getByText(heading, { exact: true })).toBeVisible();
   }
 
@@ -17,7 +17,8 @@ test('preview renders fixture components in light theme', async ({ page }) => {
   await expect(preview.getByRole('button', { name: 'Primary' })).toBeVisible();
   await expect(preview.getByRole('button', { name: 'Destructive' })).toBeVisible();
   await expect(page.getByPlaceholder('you@example.com')).toBeVisible();
-  await expect(page.getByText('Settings', { exact: true })).toBeVisible();
+  // Settings appears in breadcrumb, tab trigger, AND card title — scope to the card.
+  await expect(page.locator('[data-slot="card-title"]', { hasText: 'Settings' })).toBeVisible();
 });
 
 test('preview-root receives token CSS variables and respects light/dark', async ({ page }) => {

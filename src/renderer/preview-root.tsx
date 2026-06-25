@@ -24,6 +24,8 @@ export interface PreviewRootProps {
   theme: PreviewTheme;
   children: ReactNode;
   className?: string;
+  /** Force a pseudo-state on every descendant. Wired via use-force-state.ts. */
+  forceState?: 'off' | 'hover' | 'focus-visible' | 'active' | 'disabled';
 }
 
 /**
@@ -35,13 +37,24 @@ export interface PreviewRootProps {
  * The bytes the preview applies are the same ones `emit-theme-css` writes
  * for each token, so what you see here is what you'll export.
  */
-export function PreviewRoot({ document, theme, children, className }: PreviewRootProps) {
+export function PreviewRoot({
+  document,
+  theme,
+  children,
+  className,
+  forceState = 'off',
+}: PreviewRootProps) {
   const vars = tokensToCssVars(document, theme);
   const composed = ['tincture-preview', theme === 'dark' ? 'dark' : '', className]
     .filter(Boolean)
     .join(' ');
   return (
-    <div data-theme={theme} style={vars} className={`${composed} bg-background text-foreground`}>
+    <div
+      data-theme={theme}
+      data-force-state={forceState === 'off' ? undefined : forceState}
+      style={vars}
+      className={`${composed} bg-background text-foreground`}
+    >
       {children}
     </div>
   );
