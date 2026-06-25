@@ -113,4 +113,31 @@ describe('useProjectStore', () => {
     useProjectStore.getState().removeShadow('xl');
     expect(useProjectStore.getState().document?.tokens.shadows.xl).toBeUndefined();
   });
+
+  it('setStateToken seeds the states block with defaults on first write', () => {
+    useProjectStore.getState().load(buildValidDocument());
+    expect(useProjectStore.getState().document?.tokens.states).toBeDefined();
+    useProjectStore.getState().setStateToken('hoverOpacity', 0.75);
+    expect(useProjectStore.getState().document?.tokens.states?.hoverOpacity).toBe(0.75);
+    // Other state tokens preserved from the previous value.
+    expect(useProjectStore.getState().document?.tokens.states?.disabledOpacity).toBe(0.5);
+  });
+
+  it('setDuration / removeDuration manage animation duration entries', () => {
+    useProjectStore.getState().load(buildValidDocument());
+    useProjectStore.getState().setDuration('fast', '120ms');
+    expect(useProjectStore.getState().document?.tokens.animations?.durations.fast).toBe('120ms');
+    useProjectStore.getState().removeDuration('fast');
+    expect(useProjectStore.getState().document?.tokens.animations?.durations.fast).toBeUndefined();
+  });
+
+  it('setEasing / removeEasing manage animation easing entries', () => {
+    useProjectStore.getState().load(buildValidDocument());
+    useProjectStore.getState().setEasing('out', 'cubic-bezier(0.16, 1, 0.3, 1)');
+    expect(useProjectStore.getState().document?.tokens.animations?.easings.out).toBe(
+      'cubic-bezier(0.16, 1, 0.3, 1)',
+    );
+    useProjectStore.getState().removeEasing('out');
+    expect(useProjectStore.getState().document?.tokens.animations?.easings.out).toBeUndefined();
+  });
 });

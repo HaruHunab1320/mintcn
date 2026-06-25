@@ -2,9 +2,57 @@ import { expect, test } from '@playwright/test';
 
 test('property panel renders all sections', async ({ page }) => {
   await page.goto('/');
-  for (const heading of ['Colors', 'Radius', 'Typography', 'Shadows', 'Component']) {
+  for (const heading of [
+    'Colors',
+    'Radius',
+    'Typography',
+    'Shadows',
+    'States',
+    'Durations',
+    'Easings',
+    'Component',
+  ]) {
     await expect(page.getByRole('heading', { name: heading })).toBeVisible();
   }
+});
+
+test('state panel: editing disabled-opacity changes force-disabled rendering', async ({ page }) => {
+  await page.goto('/');
+  const primary = page
+    .locator('.tincture-preview [data-slot="button"][data-variant="default"]')
+    .first();
+
+  const disabledInput = page.getByLabel('disabled-opacity', { exact: true });
+  await disabledInput.fill('0.2');
+  await disabledInput.blur();
+
+  await page.getByRole('button', { name: 'disabled', exact: true }).click();
+  await expect(primary).toHaveCSS('opacity', '0.2');
+});
+
+test('animation panel: setDuration adds a new --duration-* entry to the document', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const newDurationInput = page.getByPlaceholder('new duration (e.g. fast)');
+  await newDurationInput.fill('xfast');
+
+  // The "add" button next to this row is the next sibling button — scope by parent.
+  const addButton = newDurationInput.locator(
+    'xpath=following-sibling::button[normalize-space()="add"]',
+  );
+  await addButton.click();
+
+  const value = await page.evaluate(() => {
+    const win = window as unknown as {
+      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+    };
+    const doc = win.__TINCTURE_STORE__.getState().document as {
+      tokens: { animations?: { durations: Record<string, string> } };
+    };
+    return doc.tokens.animations?.durations.xfast;
+  });
+  expect(value).toBe('150ms');
 });
 
 test('color panel: editing primary updates the preview', async ({ page }) => {

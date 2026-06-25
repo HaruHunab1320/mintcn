@@ -1,8 +1,10 @@
 import type { ProjectDocument } from '@/schema';
+import { AnimationPanel } from './panels/animation-panel';
 import { ColorPanel } from './panels/color-panel';
 import { ComponentPanel } from './panels/component-panel';
 import { RadiusPanel } from './panels/radius-panel';
 import { ShadowPanel } from './panels/shadow-panel';
+import { StatePanel } from './panels/state-panel';
 import { TypographyPanel } from './panels/typography-panel';
 
 interface PropertyPanelProps {
@@ -16,6 +18,8 @@ export function PropertyPanel({ document }: PropertyPanelProps) {
       <RadiusPanel document={document} />
       <TypographyPanel document={document} />
       <ShadowPanel document={document} />
+      <StatePanel document={document} />
+      <AnimationPanel document={document} />
       <ComponentPanel document={document} />
     </aside>
   );

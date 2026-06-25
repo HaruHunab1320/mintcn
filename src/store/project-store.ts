@@ -1,15 +1,27 @@
 import { create } from 'zustand';
 import {
+  type AnimationTokens,
   type ColorValue,
   type ComponentOverride,
   type Preset,
   type ProjectDocument,
   type SemanticColorToken,
+  type StateTokens,
   validateProjectDocument,
 } from '@/schema';
 
 export type Theme = 'light' | 'dark';
 export type FontFamilyKey = 'sans' | 'serif' | 'mono';
+
+const DEFAULT_STATE_TOKENS: StateTokens = {
+  hoverOpacity: 0.9,
+  focusRingWidth: '3px',
+  focusRingOpacity: 0.5,
+  activeScale: 0.97,
+  disabledOpacity: 0.5,
+};
+
+const DEFAULT_ANIMATION_TOKENS: AnimationTokens = { durations: {}, easings: {} };
 
 interface ProjectState {
   document: ProjectDocument | null;
@@ -22,6 +34,12 @@ interface ProjectState {
   setFontFamily: (family: FontFamilyKey, value: string) => void;
   setShadow: (name: string, value: string) => void;
   removeShadow: (name: string) => void;
+
+  setStateToken: <K extends keyof StateTokens>(key: K, value: StateTokens[K]) => void;
+  setDuration: (name: string, value: string) => void;
+  removeDuration: (name: string) => void;
+  setEasing: (name: string, value: string) => void;
+  removeEasing: (name: string) => void;
 
   upsertOverride: (override: ComponentOverride) => void;
   removeOverride: (componentId: string) => void;
@@ -119,6 +137,74 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         document: {
           ...document,
           tokens: { ...document.tokens, shadows: rest },
+        },
+      };
+    }),
+
+  setStateToken: (key, value) =>
+    set((state) => {
+      const document = requireDocument(state.document);
+      const current = document.tokens.states ?? DEFAULT_STATE_TOKENS;
+      return {
+        document: {
+          ...document,
+          tokens: { ...document.tokens, states: { ...current, [key]: value } },
+        },
+      };
+    }),
+
+  setDuration: (name, value) =>
+    set((state) => {
+      const document = requireDocument(state.document);
+      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+      return {
+        document: {
+          ...document,
+          tokens: {
+            ...document.tokens,
+            animations: { ...current, durations: { ...current.durations, [name]: value } },
+          },
+        },
+      };
+    }),
+
+  removeDuration: (name) =>
+    set((state) => {
+      const document = requireDocument(state.document);
+      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+      const { [name]: _removed, ...rest } = current.durations;
+      return {
+        document: {
+          ...document,
+          tokens: { ...document.tokens, animations: { ...current, durations: rest } },
+        },
+      };
+    }),
+
+  setEasing: (name, value) =>
+    set((state) => {
+      const document = requireDocument(state.document);
+      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+      return {
+        document: {
+          ...document,
+          tokens: {
+            ...document.tokens,
+            animations: { ...current, easings: { ...current.easings, [name]: value } },
+          },
+        },
+      };
+    }),
+
+  removeEasing: (name) =>
+    set((state) => {
+      const document = requireDocument(state.document);
+      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+      const { [name]: _removed, ...rest } = current.easings;
+      return {
+        document: {
+          ...document,
+          tokens: { ...document.tokens, animations: { ...current, easings: rest } },
         },
       };
     }),

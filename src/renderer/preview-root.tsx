@@ -16,6 +16,28 @@ function tokensToCssVars(doc: ProjectDocument, theme: PreviewTheme): CSSProperti
   for (const token of SEMANTIC_COLOR_TOKENS) {
     style[`--${token}`] = resolveColorValue(themeColors[token]);
   }
+  // State tokens — drive the force-state preview stylesheet and any future
+  // overrides that consume these vars directly.
+  const states = doc.tokens.states;
+  if (states) {
+    style['--hover-opacity'] = String(states.hoverOpacity);
+    style['--focus-ring-width'] = states.focusRingWidth;
+    style['--focus-ring-opacity'] = String(states.focusRingOpacity);
+    style['--active-scale'] = String(states.activeScale);
+    style['--disabled-opacity'] = String(states.disabledOpacity);
+  }
+  // Animation tokens — Tailwind v4 reads `--duration-*` and `--ease-*` from
+  // @theme natively, but we also push them onto the preview root so live edits
+  // to a duration apply without a Tailwind recompile.
+  const animations = doc.tokens.animations;
+  if (animations) {
+    for (const [name, value] of Object.entries(animations.durations)) {
+      style[`--duration-${name}`] = value;
+    }
+    for (const [name, value] of Object.entries(animations.easings)) {
+      style[`--ease-${name}`] = value;
+    }
+  }
   return style as CSSProperties;
 }
 
