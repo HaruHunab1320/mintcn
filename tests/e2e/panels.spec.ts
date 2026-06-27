@@ -10,10 +10,37 @@ test('property panel renders all sections', async ({ page }) => {
     'States',
     'Durations',
     'Easings',
+    'Keyframes',
     'Component',
   ]) {
     await expect(page.getByRole('heading', { name: heading })).toBeVisible();
   }
+});
+
+test('keyframe panel: editing a stop declaration flows into the document', async ({ page }) => {
+  await page.goto('/');
+  // The fixture ships `tincture-pulse` (3 stops). Expand it.
+  await page.getByRole('button', { name: /@keyframes tincture-pulse/ }).click();
+
+  // Stop 1 (the 50% stop) has opacity: 0.5. Change it to 0.3.
+  const opacityInput = page.getByLabel('stop 1 opacity', { exact: true });
+  await opacityInput.fill('0.3');
+  await opacityInput.blur();
+
+  const value = await page.evaluate(() => {
+    const win = window as unknown as {
+      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+    };
+    const doc = win.__TINCTURE_STORE__.getState().document as {
+      tokens: {
+        animations?: {
+          keyframes?: Record<string, { stops: { declarations: Record<string, string> }[] }>;
+        };
+      };
+    };
+    return doc.tokens.animations?.keyframes?.['tincture-pulse']?.stops[1]?.declarations.opacity;
+  });
+  expect(value).toBe('0.3');
 });
 
 test('state panel: editing disabled-opacity changes force-disabled rendering', async ({ page }) => {

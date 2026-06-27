@@ -1,5 +1,6 @@
 import {
   type ColorValue,
+  type KeyframeDefinition,
   type ProjectDocument,
   SEMANTIC_COLOR_TOKENS,
   type SemanticColorToken,
@@ -16,6 +17,19 @@ function colorDeclLines(map: TokenState['colors']['light'], indent: string): str
   return SEMANTIC_COLOR_TOKENS.map(
     (token: SemanticColorToken) => `${indent}--${token}: ${formatColorValue(map[token])};`,
   );
+}
+
+function emitKeyframe(name: string, def: KeyframeDefinition): string[] {
+  const lines: string[] = [`@keyframes ${name} {`];
+  for (const stop of def.stops) {
+    lines.push(`  ${stop.key} {`);
+    for (const [prop, value] of Object.entries(stop.declarations)) {
+      lines.push(`    ${prop}: ${value};`);
+    }
+    lines.push('  }');
+  }
+  lines.push('}');
+  return lines;
 }
 
 /**
@@ -90,6 +104,16 @@ export function emitThemeCss(doc: ProjectDocument): string {
   lines.push('    @apply bg-background text-foreground;');
   lines.push('  }');
   lines.push('}');
+
+  // Project-owned @keyframes blocks. Emitted at the bottom so they can override
+  // any imported library keyframes (CSS resolves later @keyframes of the same
+  // name last).
+  if (animations?.keyframes) {
+    for (const [name, def] of Object.entries(animations.keyframes)) {
+      lines.push('');
+      for (const line of emitKeyframe(name, def)) lines.push(line);
+    }
+  }
 
   return `${lines.join('\n')}\n`;
 }

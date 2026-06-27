@@ -140,4 +140,48 @@ describe('useProjectStore', () => {
     useProjectStore.getState().removeEasing('out');
     expect(useProjectStore.getState().document?.tokens.animations?.easings.out).toBeUndefined();
   });
+
+  it('setKeyframe adds a keyframe; removeKeyframe drops it', () => {
+    useProjectStore.getState().load(buildValidDocument());
+    useProjectStore.getState().setKeyframe('spin', {
+      stops: [
+        { key: 'from', declarations: { transform: 'rotate(0deg)' } },
+        { key: 'to', declarations: { transform: 'rotate(360deg)' } },
+      ],
+    });
+    const after = useProjectStore.getState().document?.tokens.animations?.keyframes;
+    expect(after?.spin.stops).toHaveLength(2);
+    useProjectStore.getState().removeKeyframe('spin');
+    expect(useProjectStore.getState().document?.tokens.animations?.keyframes).toBeUndefined();
+  });
+
+  it('setKeyframeStop replaces a stop in place', () => {
+    useProjectStore.getState().load(buildValidDocument());
+    useProjectStore.getState().setKeyframe('fade', {
+      stops: [
+        { key: 'from', declarations: { opacity: '0' } },
+        { key: 'to', declarations: { opacity: '1' } },
+      ],
+    });
+    useProjectStore.getState().setKeyframeStop('fade', 1, {
+      key: 'to',
+      declarations: { opacity: '0.9' },
+    });
+    const stops = useProjectStore.getState().document?.tokens.animations?.keyframes?.fade.stops;
+    expect(stops?.[1].declarations.opacity).toBe('0.9');
+  });
+
+  it('removeKeyframeStop deletes a stop by index', () => {
+    useProjectStore.getState().load(buildValidDocument());
+    useProjectStore.getState().setKeyframe('pulse', {
+      stops: [
+        { key: '0%', declarations: { opacity: '1' } },
+        { key: '50%', declarations: { opacity: '0.5' } },
+        { key: '100%', declarations: { opacity: '1' } },
+      ],
+    });
+    useProjectStore.getState().removeKeyframeStop('pulse', 1);
+    const stops = useProjectStore.getState().document?.tokens.animations?.keyframes?.pulse.stops;
+    expect(stops?.map((s) => s.key)).toEqual(['0%', '100%']);
+  });
 });

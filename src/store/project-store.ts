@@ -3,6 +3,7 @@ import {
   type AnimationTokens,
   type ColorValue,
   type ComponentOverride,
+  type KeyframeDefinition,
   type Preset,
   type ProjectDocument,
   type SemanticColorToken,
@@ -40,6 +41,15 @@ interface ProjectState {
   removeDuration: (name: string) => void;
   setEasing: (name: string, value: string) => void;
   removeEasing: (name: string) => void;
+
+  setKeyframe: (name: string, definition: KeyframeDefinition) => void;
+  removeKeyframe: (name: string) => void;
+  setKeyframeStop: (
+    keyframeName: string,
+    stopIndex: number,
+    stop: KeyframeDefinition['stops'][number],
+  ) => void;
+  removeKeyframeStop: (keyframeName: string, stopIndex: number) => void;
 
   upsertOverride: (override: ComponentOverride) => void;
   removeOverride: (componentId: string) => void;
@@ -205,6 +215,87 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         document: {
           ...document,
           tokens: { ...document.tokens, animations: { ...current, easings: rest } },
+        },
+      };
+    }),
+
+  setKeyframe: (name, definition) =>
+    set((state) => {
+      const document = requireDocument(state.document);
+      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+      const keyframes = { ...(current.keyframes ?? {}), [name]: definition };
+      return {
+        document: {
+          ...document,
+          tokens: { ...document.tokens, animations: { ...current, keyframes } },
+        },
+      };
+    }),
+
+  removeKeyframe: (name) =>
+    set((state) => {
+      const document = requireDocument(state.document);
+      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+      const { [name]: _removed, ...rest } = current.keyframes ?? {};
+      const nextKeyframes = Object.keys(rest).length > 0 ? rest : undefined;
+      return {
+        document: {
+          ...document,
+          tokens: {
+            ...document.tokens,
+            animations: { ...current, keyframes: nextKeyframes },
+          },
+        },
+      };
+    }),
+
+  setKeyframeStop: (keyframeName, stopIndex, stop) =>
+    set((state) => {
+      const document = requireDocument(state.document);
+      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+      const def = current.keyframes?.[keyframeName];
+      if (!def) {
+        throw new Error(`project-store: unknown keyframe "${keyframeName}"`);
+      }
+      const stops = def.stops.slice();
+      if (stopIndex >= 0 && stopIndex < stops.length) {
+        stops[stopIndex] = stop;
+      } else {
+        stops.push(stop);
+      }
+      return {
+        document: {
+          ...document,
+          tokens: {
+            ...document.tokens,
+            animations: {
+              ...current,
+              keyframes: { ...current.keyframes, [keyframeName]: { stops } },
+            },
+          },
+        },
+      };
+    }),
+
+  removeKeyframeStop: (keyframeName, stopIndex) =>
+    set((state) => {
+      const document = requireDocument(state.document);
+      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+      const def = current.keyframes?.[keyframeName];
+      if (!def) {
+        throw new Error(`project-store: unknown keyframe "${keyframeName}"`);
+      }
+      const stops = def.stops.filter((_, i) => i !== stopIndex);
+      return {
+        document: {
+          ...document,
+          tokens: {
+            ...document.tokens,
+            animations: {
+              ...current,
+              keyframes: { ...current.keyframes, [keyframeName]: { stops } },
+            },
+          },
         },
       };
     }),

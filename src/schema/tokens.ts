@@ -60,13 +60,32 @@ export const StateTokensSchema = z.object({
 export type StateTokens = z.infer<typeof StateTokensSchema>;
 
 /**
+ * A single stop in a @keyframes block. `key` is the stop selector
+ * (`"from"`, `"to"`, or a percentage like `"50%"`). `declarations` preserves
+ * insertion order of property/value pairs so emit reproduces the source
+ * byte-for-byte.
+ */
+export const KeyframeStopSchema = z.object({
+  key: z.string().min(1),
+  declarations: z.record(z.string(), z.string()),
+});
+export type KeyframeStop = z.infer<typeof KeyframeStopSchema>;
+
+export const KeyframeDefinitionSchema = z.object({
+  stops: z.array(KeyframeStopSchema),
+});
+export type KeyframeDefinition = z.infer<typeof KeyframeDefinitionSchema>;
+
+/**
  * Animation tokens. Tailwind v4 reads `--duration-*` and `--ease-*` from
  * `@theme` natively, so any utility named `duration-fast` / `ease-out` etc.
- * resolves through these. Keyframes are addressed in a later milestone.
+ * resolves through these. `keyframes` is an ordered map (insertion order
+ * preserved through ingest/emit) of @keyframes blocks the project owns.
  */
 export const AnimationTokensSchema = z.object({
   durations: z.record(z.string(), z.string()),
   easings: z.record(z.string(), z.string()),
+  keyframes: z.record(z.string(), KeyframeDefinitionSchema).optional(),
 });
 export type AnimationTokens = z.infer<typeof AnimationTokensSchema>;
 

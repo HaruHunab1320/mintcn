@@ -138,3 +138,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes tincture-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

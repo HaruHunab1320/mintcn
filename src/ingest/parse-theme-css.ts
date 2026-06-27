@@ -4,6 +4,7 @@ import {
   type ColorMap,
   type ColorValue,
   isSemanticColorToken,
+  type KeyframeDefinition,
   type SemanticColorToken,
   type StateTokens,
   type TokenState,
@@ -126,15 +127,48 @@ function extractStateTokens(themeVars: Map<string, string>): StateTokens | undef
   };
 }
 
-function extractAnimationTokens(themeVars: Map<string, string>): AnimationTokens | undefined {
+function extractAnimationTokens(
+  themeVars: Map<string, string>,
+  keyframes: Record<string, KeyframeDefinition>,
+): AnimationTokens | undefined {
   const durations: Record<string, string> = {};
   const easings: Record<string, string> = {};
   for (const [k, v] of themeVars) {
     if (k.startsWith('duration-')) durations[k.slice('duration-'.length)] = v;
     else if (k.startsWith('ease-')) easings[k.slice('ease-'.length)] = v;
   }
-  if (Object.keys(durations).length === 0 && Object.keys(easings).length === 0) return undefined;
-  return { durations, easings };
+  const hasKeyframes = Object.keys(keyframes).length > 0;
+  if (Object.keys(durations).length === 0 && Object.keys(easings).length === 0 && !hasKeyframes) {
+    return undefined;
+  }
+  return {
+    durations,
+    easings,
+    keyframes: hasKeyframes ? keyframes : undefined,
+  };
+}
+
+/**
+ * Walk top-level @keyframes at-rules. Each inner CSSRule is one stop whose
+ * selector is the key (e.g. "from", "to", "0%, 100%") and whose declarations
+ * are the property/value pairs. Order is preserved so emit reproduces source.
+ */
+function extractKeyframes(root: Container): Record<string, KeyframeDefinition> {
+  const out: Record<string, KeyframeDefinition> = {};
+  root.walkAtRules('keyframes', (atRule: AtRule) => {
+    const name = atRule.params.trim();
+    if (!name) return;
+    const stops: KeyframeDefinition['stops'] = [];
+    atRule.walkRules((rule: Rule) => {
+      const declarations: Record<string, string> = {};
+      rule.walkDecls((decl: Declaration) => {
+        declarations[decl.prop] = decl.value;
+      });
+      stops.push({ key: rule.selector.trim(), declarations });
+    });
+    out[name] = { stops };
+  });
+  return out;
 }
 
 function extractThemeImports(root: Container): string[] {
@@ -195,7 +229,7 @@ export function parseThemeCss(cssText: string): ParsedThemeCss {
     shadows: extractShadows(themeVars),
     borders: { width: {} },
     states: extractStateTokens(themeVars),
-    animations: extractAnimationTokens(themeVars),
+    animations: extractAnimationTokens(themeVars, extractKeyframes(root)),
   };
 
   return { tokens, themeImports: extractThemeImports(root) };
