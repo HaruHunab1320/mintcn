@@ -22,9 +22,29 @@ function fixtureProjectPlugin(): Plugin {
     },
     async load(id) {
       if (id !== RESOLVED_FIXTURE_ID) return null;
+      const fs = await import('node:fs/promises');
       const { loadProject } = await import('./src/ingest/load-project');
       const doc = loadProject({ rootDir: FIXTURE_ROOT, name: 'shadcn-app' });
-      return `export const fixtureProject = ${JSON.stringify(doc)};`;
+
+      // Also expose the raw bytes of every file emit might rewrite, so the
+      // DiffView can compare emitter output against what's on disk today.
+      const originals: Record<string, string> = {};
+      const relativeFiles = [
+        'app/globals.css',
+        'components.json',
+        ...doc.components.map((c) => c.source.path),
+      ];
+      await Promise.all(
+        relativeFiles.map(async (rel) => {
+          try {
+            originals[rel] = await fs.readFile(path.join(FIXTURE_ROOT, rel), 'utf8');
+          } catch {
+            // File missing on disk — skip; emitter still runs.
+          }
+        }),
+      );
+
+      return `export const fixtureProject = ${JSON.stringify(doc)};\nexport const fixtureOriginals = ${JSON.stringify(originals)};`;
     },
     configureServer(server) {
       server.watcher.add(FIXTURE_ROOT);
