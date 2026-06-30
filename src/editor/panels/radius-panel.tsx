@@ -17,7 +17,7 @@ export function RadiusPanel({ document }: RadiusPanelProps) {
   const isRem = base.endsWith('rem');
 
   return (
-    <PanelSection title="Radius" description="--radius drives the rounded-* scale">
+    <PanelSection panelId="radius" title="Radius" description="--radius drives the rounded-* scale">
       <div className="flex items-center gap-2">
         <input
           type="range"

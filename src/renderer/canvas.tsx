@@ -404,6 +404,12 @@ function CalendarShowcase() {
 
 interface CanvasProps {
   document: ProjectDocument;
+  /** Controlled theme. Falls back to local state when undefined. */
+  theme?: PreviewTheme;
+  onThemeChange?: (theme: PreviewTheme) => void;
+  /** Controlled force-state. Falls back to the useForceState hook when undefined. */
+  forceState?: ForceState;
+  onForceStateChange?: (state: ForceState) => void;
 }
 
 /**
@@ -411,10 +417,31 @@ interface CanvasProps {
  * the fixture's shadcn/ui v4 component set across category sections, and
  * exposes a light/dark toggle. The full set lives in `fixtures/shadcn-app/`
  * and is browsable via the property panel's component selector.
+ *
+ * Theme and force-state can be controlled by a parent (so the command
+ * palette can toggle them) or left uncontrolled, in which case the canvas
+ * manages its own state.
  */
-export function Canvas({ document }: CanvasProps) {
-  const [theme, setTheme] = useState<PreviewTheme>('light');
-  const [forceState, setForceState] = useForceState();
+export function Canvas({
+  document,
+  theme: controlledTheme,
+  onThemeChange,
+  forceState: controlledForceState,
+  onForceStateChange,
+}: CanvasProps) {
+  const [localTheme, setLocalTheme] = useState<PreviewTheme>('light');
+  const [localForceState, setLocalForceState] = useForceState();
+
+  const theme = controlledTheme ?? localTheme;
+  const forceState = controlledForceState ?? localForceState;
+  const setTheme = (next: PreviewTheme) => {
+    if (onThemeChange) onThemeChange(next);
+    else setLocalTheme(next);
+  };
+  const setForceState = (next: ForceState) => {
+    if (onForceStateChange) onForceStateChange(next);
+    else setLocalForceState(next);
+  };
 
   return (
     <section className="flex flex-col gap-3">

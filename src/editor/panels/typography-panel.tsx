@@ -16,7 +16,7 @@ export function TypographyPanel({ document }: TypographyPanelProps) {
   const setFontFamily = useProjectStore((s) => s.setFontFamily);
   const fam = document.tokens.typography.fontFamily;
   return (
-    <PanelSection title="Typography" description="Font-family stacks">
+    <PanelSection panelId="typography" title="Typography" description="Font-family stacks">
       {FAMILIES.map(({ key, label }) => (
         <label key={key} className="flex flex-col gap-1 text-xs">
           <span className="font-mono text-[11px] text-neutral-400">{label}</span>

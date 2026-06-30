@@ -1,15 +1,33 @@
 import type { ReactNode } from 'react';
 
+export type PanelId =
+  | 'presets'
+  | 'colors'
+  | 'radius'
+  | 'typography'
+  | 'shadows'
+  | 'states'
+  | 'durations'
+  | 'easings'
+  | 'keyframes'
+  | 'overrides'
+  | 'component';
+
 interface PanelSectionProps {
+  /** Stable id used by the command palette to scroll the section into view. */
+  panelId?: PanelId;
   title: string;
   description?: string;
   children: ReactNode;
 }
 
 /** A titled, bordered card for one panel category. Pure presentational. */
-export function PanelSection({ title, description, children }: PanelSectionProps) {
+export function PanelSection({ panelId, title, description, children }: PanelSectionProps) {
   return (
-    <section className="flex flex-col gap-3 rounded-lg border border-neutral-800 bg-neutral-950/50 p-4">
+    <section
+      data-panel-id={panelId}
+      className="flex flex-col gap-3 rounded-lg border border-neutral-800 bg-neutral-950/50 p-4"
+    >
       <header className="flex flex-col gap-0.5">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-300">{title}</h3>
         {description ? <p className="text-xs text-neutral-500">{description}</p> : null}

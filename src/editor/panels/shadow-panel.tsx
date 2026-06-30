@@ -16,7 +16,7 @@ export function ShadowPanel({ document }: ShadowPanelProps) {
   const names = Object.keys(shadows);
 
   return (
-    <PanelSection title="Shadows" description="--shadow-* tokens">
+    <PanelSection panelId="shadows" title="Shadows" description="--shadow-* tokens">
       {names.length === 0 ? (
         <p className="text-xs text-neutral-500">No shadow tokens defined.</p>
       ) : null}

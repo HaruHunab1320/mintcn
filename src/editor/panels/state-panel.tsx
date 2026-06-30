@@ -72,7 +72,11 @@ export function StatePanel({ document }: StatePanelProps) {
   const s = document.tokens.states ?? DEFAULTS;
 
   return (
-    <PanelSection title="States" description="Drives the FORCE preview · ranges 0–1">
+    <PanelSection
+      panelId="states"
+      title="States"
+      description="Drives the FORCE preview · ranges 0–1"
+    >
       <NumberRow
         label="hover-opacity"
         hint="0 fully transparent · 1 opaque"

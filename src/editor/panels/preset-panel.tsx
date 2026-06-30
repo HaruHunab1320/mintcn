@@ -26,7 +26,7 @@ export function PresetPanel({ document }: PresetPanelProps) {
   };
 
   return (
-    <PanelSection title="Presets" description="Save + load full theme snapshots">
+    <PanelSection panelId="presets" title="Presets" description="Save + load full theme snapshots">
       {document.presets.length === 0 ? (
         <p className="text-[11px] text-neutral-500">No presets yet.</p>
       ) : null}

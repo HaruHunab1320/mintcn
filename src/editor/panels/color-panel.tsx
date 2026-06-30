@@ -200,7 +200,7 @@ export function ColorPanel({ document }: ColorPanelProps) {
   const map = document.tokens.colors[theme];
 
   return (
-    <PanelSection title="Colors" description="Semantic tokens · click to edit">
+    <PanelSection panelId="colors" title="Colors" description="Semantic tokens · click to edit">
       <div className="inline-flex gap-1 rounded-md border border-neutral-800 p-1 text-xs">
         {(['light', 'dark'] as const).map((t) => (
           <button

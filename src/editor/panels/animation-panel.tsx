@@ -90,6 +90,7 @@ export function AnimationPanel({ document }: AnimationPanelProps) {
   return (
     <>
       <PanelSection
+        panelId="durations"
         title="Durations"
         description="--duration-* · Tailwind utilities resolve through these"
       >
@@ -102,7 +103,11 @@ export function AnimationPanel({ document }: AnimationPanelProps) {
           onRemove={removeDuration}
         />
       </PanelSection>
-      <PanelSection title="Easings" description="--ease-* · cubic-bezier or keyword">
+      <PanelSection
+        panelId="easings"
+        title="Easings"
+        description="--ease-* · cubic-bezier or keyword"
+      >
         <RowEditor
           entries={animations.easings}
           prefix="--ease-"

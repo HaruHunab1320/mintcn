@@ -22,7 +22,7 @@ export function ComponentPanel({ document }: ComponentPanelProps) {
   const selected = document.components.find((c) => c.id === selectedId);
 
   return (
-    <PanelSection title="Component" description="Inspect variants & slots">
+    <PanelSection panelId="component" title="Component" description="Inspect variants & slots">
       <select
         value={selectedId}
         onChange={(e) => setSelectedId(e.target.value)}

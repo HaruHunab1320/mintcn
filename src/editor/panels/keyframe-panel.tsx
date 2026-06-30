@@ -164,7 +164,11 @@ export function KeyframePanel({ document }: KeyframePanelProps) {
   const names = Object.keys(keyframes);
 
   return (
-    <PanelSection title="Keyframes" description="@keyframes blocks · click to expand & edit">
+    <PanelSection
+      panelId="keyframes"
+      title="Keyframes"
+      description="@keyframes blocks · click to expand & edit"
+    >
       {names.length === 0 ? (
         <p className="text-[11px] text-neutral-500">No keyframes defined.</p>
       ) : null}

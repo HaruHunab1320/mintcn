@@ -98,6 +98,7 @@ export function OverridePanel({ document }: OverridePanelProps) {
 
   return (
     <PanelSection
+      panelId="overrides"
       title="Overrides"
       description="Edit cva variant classes · exports via emit-component-source"
     >
