@@ -31,6 +31,14 @@ interface ProjectState {
   unload: () => void;
 
   setTokenColor: (theme: Theme, token: SemanticColorToken, value: ColorValue) => void;
+  /**
+   * Replace both light and dark color maps in a single update so subscribers
+   * repaint once. Used by the palette bar's Generate action.
+   */
+  applyPalette: (input: {
+    light: Record<SemanticColorToken, ColorValue>;
+    dark: Record<SemanticColorToken, ColorValue>;
+  }) => void;
   setRadius: (value: string) => void;
   setFontFamily: (family: FontFamilyKey, value: string) => void;
   setShadow: (name: string, value: string) => void;
@@ -106,6 +114,20 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
                 [token]: value,
               },
             },
+          },
+        },
+      };
+    }),
+
+  applyPalette: (input) =>
+    set((state) => {
+      const document = requireDocument(state.document);
+      return {
+        document: {
+          ...document,
+          tokens: {
+            ...document.tokens,
+            colors: { light: input.light, dark: input.dark },
           },
         },
       };

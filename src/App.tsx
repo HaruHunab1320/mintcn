@@ -1,7 +1,7 @@
 import { fixtureOriginals, fixtureProject } from 'virtual:tincture-fixture';
 import { useEffect, useMemo, useState } from 'react';
 import { changedFiles, emitProject } from '@/codegen';
-import { DiffView, ExportMenu, PropertyPanel } from '@/editor';
+import { DiffView, ExportMenu, PaletteBar, PropertyPanel } from '@/editor';
 import { Canvas } from '@/renderer';
 import { useProjectStore } from '@/store/project-store';
 
@@ -59,7 +59,8 @@ export default function App() {
       </header>
       {document ? (
         <div className="flex flex-1 overflow-hidden">
-          <main className="flex-1 overflow-y-auto p-6">
+          <main className="flex flex-1 flex-col gap-6 overflow-y-auto p-6">
+            <PaletteBar document={document} />
             <Canvas document={document} />
           </main>
           <div className="flex h-full shrink-0 border-l border-neutral-800">
