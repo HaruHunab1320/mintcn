@@ -47,3 +47,15 @@
     color: #f5f5f5;
   }
 }
+
+/* Bezier editor preview dot — the CSS timing function is applied inline so
+   we can swap the curve without re-parsing. The strip is 200px wide, dot
+   is 12px, so we translate by ~188px to hit the far edge. */
+@keyframes tincture-bezier-preview {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(188px);
+  }
+}
