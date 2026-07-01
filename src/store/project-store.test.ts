@@ -236,3 +236,53 @@ describe('useProjectStore', () => {
     expect(stops?.map((s) => s.key)).toEqual(['0%', '100%']);
   });
 });
+
+describe('temporal / undo-redo', () => {
+  beforeEach(() => {
+    useProjectStore.getState().unload();
+    useProjectStore.temporal.getState().clear();
+  });
+
+  // Small helper: run the temporal-only synchronous flush via clear-and-record
+  // isn't sufficient because the middleware throttles. We instead poke the
+  // temporal API directly by pushing pastStates.
+  const captureStep = () => {
+    // Manually push the current state onto the past stack so subsequent
+    // undo() has something to restore to. This mirrors what the throttled
+    // handleSet would eventually do after 250ms.
+    // biome-ignore lint/suspicious/noExplicitAny: TemporalState internals are typed loosely
+    const temporal: any = useProjectStore.temporal.getState();
+    temporal.pastStates.push({ document: useProjectStore.getState().document });
+  };
+
+  it('undo restores the previous document state', () => {
+    useProjectStore.getState().load(buildValidDocument());
+    const originalRadius = useProjectStore.getState().document?.tokens.radius.base;
+
+    captureStep();
+    useProjectStore.getState().setRadius('2rem');
+    expect(useProjectStore.getState().document?.tokens.radius.base).toBe('2rem');
+
+    useProjectStore.temporal.getState().undo();
+    expect(useProjectStore.getState().document?.tokens.radius.base).toBe(originalRadius);
+  });
+
+  it('redo re-applies a previously undone change', () => {
+    useProjectStore.getState().load(buildValidDocument());
+    captureStep();
+    useProjectStore.getState().setRadius('2rem');
+    useProjectStore.temporal.getState().undo();
+    expect(useProjectStore.getState().document?.tokens.radius.base).not.toBe('2rem');
+
+    useProjectStore.temporal.getState().redo();
+    expect(useProjectStore.getState().document?.tokens.radius.base).toBe('2rem');
+  });
+
+  it('undo bails when there is no history to replay', () => {
+    useProjectStore.getState().load(buildValidDocument());
+    useProjectStore.temporal.getState().clear();
+    const before = useProjectStore.getState().document?.tokens.radius.base;
+    useProjectStore.temporal.getState().undo();
+    expect(useProjectStore.getState().document?.tokens.radius.base).toBe(before);
+  });
+});

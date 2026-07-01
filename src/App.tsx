@@ -1,5 +1,5 @@
 import { fixtureOriginals, fixtureProject } from 'virtual:tincture-fixture';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { changedFiles, emitProject } from '@/codegen';
 import {
   buildCommands,
@@ -20,11 +20,25 @@ import { useProjectStore } from '@/store/project-store';
 
 const FORCE_STATE_CYCLE: ForceState[] = ['off', 'hover', 'focus-visible', 'active', 'disabled'];
 
+/**
+ * Subscribes to the zundo temporal store so header buttons can reflect
+ * canUndo / canRedo without polling.
+ */
+function useTemporal() {
+  return useSyncExternalStore(
+    (onChange) => useProjectStore.temporal.subscribe(onChange),
+    () => useProjectStore.temporal.getState(),
+  );
+}
+
 export default function App() {
   const document = useProjectStore((s) => s.document);
   const load = useProjectStore((s) => s.load);
   const applyPalette = useProjectStore((s) => s.applyPalette);
   const savePreset = useProjectStore((s) => s.savePreset);
+  const temporal = useTemporal();
+  const canUndo = temporal.pastStates.length > 0;
+  const canRedo = temporal.futureStates.length > 0;
   const [showDiff, setShowDiff] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [theme, setTheme] = useState<PreviewTheme>('light');
@@ -83,6 +97,9 @@ export default function App() {
     if (name?.trim()) savePreset(name.trim());
   }, [savePreset]);
 
+  const undo = useCallback(() => useProjectStore.temporal.getState().undo(), []);
+  const redo = useCallback(() => useProjectStore.temporal.getState().redo(), []);
+
   const commands = useMemo(
     () =>
       buildCommands({
@@ -93,6 +110,8 @@ export default function App() {
         openDiff: () => setShowDiff(true),
         exportShape: (shape) => void runExportShape(shape),
         savePresetPrompt,
+        undo,
+        redo,
       }),
     [
       scrollToPanel,
@@ -101,20 +120,44 @@ export default function App() {
       cycleForceState,
       runExportShape,
       savePresetPrompt,
+      undo,
+      redo,
     ],
   );
 
-  // ⌘K / Ctrl+K toggles the command palette anywhere on the page.
+  // Global keyboard shortcuts:
+  //   ⌘K / Ctrl+K → command palette
+  //   ⌘Z / Ctrl+Z → undo
+  //   ⌘⇧Z / Ctrl+Shift+Z → redo (Ctrl+Y also honored)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      const meta = e.metaKey || e.ctrlKey;
+      if (!meta) return;
+      const key = e.key.toLowerCase();
+      if (key === 'k') {
         e.preventDefault();
         setPaletteOpen((open) => !open);
+        return;
+      }
+      // Ignore shortcuts fired inside text inputs — users editing a text
+      // field expect the native browser undo, not a full document rollback.
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      const inTextField =
+        tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable === true;
+      if (inTextField) return;
+
+      if (key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if ((key === 'z' && e.shiftKey) || key === 'y') {
+        e.preventDefault();
+        redo();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [undo, redo]);
 
   return (
     <div className="flex h-screen flex-col bg-neutral-950 text-neutral-100">
@@ -139,6 +182,28 @@ export default function App() {
                 ⌘K
               </kbd>
             </button>
+            <div className="inline-flex overflow-hidden rounded-md border border-neutral-700">
+              <button
+                type="button"
+                onClick={undo}
+                disabled={!canUndo}
+                aria-label="Undo"
+                title="Undo (⌘Z)"
+                className="border-r border-neutral-700 px-2 py-1.5 text-xs text-neutral-200 enabled:hover:bg-neutral-900 disabled:opacity-40"
+              >
+                ↶
+              </button>
+              <button
+                type="button"
+                onClick={redo}
+                disabled={!canRedo}
+                aria-label="Redo"
+                title="Redo (⌘⇧Z)"
+                className="px-2 py-1.5 text-xs text-neutral-200 enabled:hover:bg-neutral-900 disabled:opacity-40"
+              >
+                ↷
+              </button>
+            </div>
             <button
               type="button"
               onClick={() => setShowDiff(true)}

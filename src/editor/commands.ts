@@ -26,6 +26,8 @@ export interface CommandContext {
   openDiff: () => void;
   exportShape: (shape: ExportShape) => void;
   savePresetPrompt: () => void;
+  undo: () => void;
+  redo: () => void;
 }
 
 const PANEL_LABELS: { id: PanelId; label: string }[] = [
@@ -49,6 +51,24 @@ const PANEL_LABELS: { id: PanelId; label: string }[] = [
  */
 export function buildCommands(ctx: CommandContext): CommandEntry[] {
   const commands: CommandEntry[] = [];
+
+  commands.push({
+    id: 'history.undo',
+    label: 'Undo',
+    hint: '⌘Z',
+    group: 'Workflow',
+    keywords: ['undo', 'back', 'revert', 'history'],
+    action: ctx.undo,
+  });
+
+  commands.push({
+    id: 'history.redo',
+    label: 'Redo',
+    hint: '⌘⇧Z',
+    group: 'Workflow',
+    keywords: ['redo', 'forward', 'history'],
+    action: ctx.redo,
+  });
 
   commands.push({
     id: 'palette.generate',

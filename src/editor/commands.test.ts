@@ -10,6 +10,8 @@ function buildCtx(): CommandContext {
     openDiff: vi.fn(),
     exportShape: vi.fn(),
     savePresetPrompt: vi.fn(),
+    undo: vi.fn(),
+    redo: vi.fn(),
   };
 }
 
@@ -17,6 +19,8 @@ describe('buildCommands', () => {
   it('produces a command for every panel + the workflow actions', () => {
     const commands = buildCommands(buildCtx());
     const ids = commands.map((c) => c.id);
+    expect(ids).toContain('history.undo');
+    expect(ids).toContain('history.redo');
     expect(ids).toContain('palette.generate');
     expect(ids).toContain('theme.toggle');
     expect(ids).toContain('force-state.cycle');

@@ -1,3 +1,5 @@
+import { type TemporalState, temporal } from 'zundo';
+import type { StoreApi } from 'zustand';
 import { create } from 'zustand';
 import {
   type AnimationTokens,
@@ -89,369 +91,413 @@ function uniqueId(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export const useProjectStore = create<ProjectState>((set, get) => ({
-  document: null,
+/**
+ * Store wrapped in zundo's `temporal` middleware — undo/redo history over the
+ * document slice. Rapid updates (slider drags) are coalesced by the 250ms
+ * throttle so a single drag becomes one history step, not fifty.
+ *
+ * `partialize` limits history to the document itself; the action functions
+ * are stable references so they don't clutter the past/future stacks.
+ */
+export const useProjectStore = create<ProjectState>()(
+  temporal(
+    (set, get) => ({
+      document: null,
 
-  load: (input) => {
-    const document = validateProjectDocument(input);
-    set({ document });
-  },
+      load: (input) => {
+        const document = validateProjectDocument(input);
+        set({ document });
+      },
 
-  unload: () => set({ document: null }),
+      unload: () => set({ document: null }),
 
-  setTokenColor: (theme, token, value) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      return {
-        document: {
-          ...document,
-          tokens: {
-            ...document.tokens,
-            colors: {
-              ...document.tokens.colors,
-              [theme]: {
-                ...document.tokens.colors[theme],
-                [token]: value,
+      setTokenColor: (theme, token, value) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          return {
+            document: {
+              ...document,
+              tokens: {
+                ...document.tokens,
+                colors: {
+                  ...document.tokens.colors,
+                  [theme]: {
+                    ...document.tokens.colors[theme],
+                    [token]: value,
+                  },
+                },
               },
             },
-          },
-        },
-      };
-    }),
+          };
+        }),
 
-  applyPalette: (input) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      return {
-        document: {
-          ...document,
-          tokens: {
-            ...document.tokens,
-            colors: { light: input.light, dark: input.dark },
-          },
-        },
-      };
-    }),
-
-  setRadius: (value) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      return {
-        document: {
-          ...document,
-          tokens: { ...document.tokens, radius: { base: value } },
-        },
-      };
-    }),
-
-  setFontFamily: (family, value) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      return {
-        document: {
-          ...document,
-          tokens: {
-            ...document.tokens,
-            typography: {
-              ...document.tokens.typography,
-              fontFamily: { ...document.tokens.typography.fontFamily, [family]: value },
+      applyPalette: (input) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          return {
+            document: {
+              ...document,
+              tokens: {
+                ...document.tokens,
+                colors: { light: input.light, dark: input.dark },
+              },
             },
-          },
-        },
-      };
-    }),
+          };
+        }),
 
-  setShadow: (name, value) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      return {
-        document: {
-          ...document,
-          tokens: {
-            ...document.tokens,
-            shadows: { ...document.tokens.shadows, [name]: value },
-          },
-        },
-      };
-    }),
-
-  removeShadow: (name) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      const { [name]: _removed, ...rest } = document.tokens.shadows;
-      return {
-        document: {
-          ...document,
-          tokens: { ...document.tokens, shadows: rest },
-        },
-      };
-    }),
-
-  setStateToken: (key, value) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      const current = document.tokens.states ?? DEFAULT_STATE_TOKENS;
-      return {
-        document: {
-          ...document,
-          tokens: { ...document.tokens, states: { ...current, [key]: value } },
-        },
-      };
-    }),
-
-  setDuration: (name, value) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
-      return {
-        document: {
-          ...document,
-          tokens: {
-            ...document.tokens,
-            animations: { ...current, durations: { ...current.durations, [name]: value } },
-          },
-        },
-      };
-    }),
-
-  removeDuration: (name) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
-      const { [name]: _removed, ...rest } = current.durations;
-      return {
-        document: {
-          ...document,
-          tokens: { ...document.tokens, animations: { ...current, durations: rest } },
-        },
-      };
-    }),
-
-  setEasing: (name, value) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
-      return {
-        document: {
-          ...document,
-          tokens: {
-            ...document.tokens,
-            animations: { ...current, easings: { ...current.easings, [name]: value } },
-          },
-        },
-      };
-    }),
-
-  removeEasing: (name) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
-      const { [name]: _removed, ...rest } = current.easings;
-      return {
-        document: {
-          ...document,
-          tokens: { ...document.tokens, animations: { ...current, easings: rest } },
-        },
-      };
-    }),
-
-  setKeyframe: (name, definition) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
-      const keyframes = { ...(current.keyframes ?? {}), [name]: definition };
-      return {
-        document: {
-          ...document,
-          tokens: { ...document.tokens, animations: { ...current, keyframes } },
-        },
-      };
-    }),
-
-  removeKeyframe: (name) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
-      const { [name]: _removed, ...rest } = current.keyframes ?? {};
-      const nextKeyframes = Object.keys(rest).length > 0 ? rest : undefined;
-      return {
-        document: {
-          ...document,
-          tokens: {
-            ...document.tokens,
-            animations: { ...current, keyframes: nextKeyframes },
-          },
-        },
-      };
-    }),
-
-  setKeyframeStop: (keyframeName, stopIndex, stop) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
-      const def = current.keyframes?.[keyframeName];
-      if (!def) {
-        throw new Error(`project-store: unknown keyframe "${keyframeName}"`);
-      }
-      const stops = def.stops.slice();
-      if (stopIndex >= 0 && stopIndex < stops.length) {
-        stops[stopIndex] = stop;
-      } else {
-        stops.push(stop);
-      }
-      return {
-        document: {
-          ...document,
-          tokens: {
-            ...document.tokens,
-            animations: {
-              ...current,
-              keyframes: { ...current.keyframes, [keyframeName]: { stops } },
+      setRadius: (value) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          return {
+            document: {
+              ...document,
+              tokens: { ...document.tokens, radius: { base: value } },
             },
-          },
-        },
-      };
-    }),
+          };
+        }),
 
-  removeKeyframeStop: (keyframeName, stopIndex) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
-      const def = current.keyframes?.[keyframeName];
-      if (!def) {
-        throw new Error(`project-store: unknown keyframe "${keyframeName}"`);
-      }
-      const stops = def.stops.filter((_, i) => i !== stopIndex);
-      return {
-        document: {
-          ...document,
-          tokens: {
-            ...document.tokens,
-            animations: {
-              ...current,
-              keyframes: { ...current.keyframes, [keyframeName]: { stops } },
+      setFontFamily: (family, value) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          return {
+            document: {
+              ...document,
+              tokens: {
+                ...document.tokens,
+                typography: {
+                  ...document.tokens.typography,
+                  fontFamily: { ...document.tokens.typography.fontFamily, [family]: value },
+                },
+              },
             },
-          },
-        },
-      };
+          };
+        }),
+
+      setShadow: (name, value) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          return {
+            document: {
+              ...document,
+              tokens: {
+                ...document.tokens,
+                shadows: { ...document.tokens.shadows, [name]: value },
+              },
+            },
+          };
+        }),
+
+      removeShadow: (name) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          const { [name]: _removed, ...rest } = document.tokens.shadows;
+          return {
+            document: {
+              ...document,
+              tokens: { ...document.tokens, shadows: rest },
+            },
+          };
+        }),
+
+      setStateToken: (key, value) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          const current = document.tokens.states ?? DEFAULT_STATE_TOKENS;
+          return {
+            document: {
+              ...document,
+              tokens: { ...document.tokens, states: { ...current, [key]: value } },
+            },
+          };
+        }),
+
+      setDuration: (name, value) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+          return {
+            document: {
+              ...document,
+              tokens: {
+                ...document.tokens,
+                animations: { ...current, durations: { ...current.durations, [name]: value } },
+              },
+            },
+          };
+        }),
+
+      removeDuration: (name) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+          const { [name]: _removed, ...rest } = current.durations;
+          return {
+            document: {
+              ...document,
+              tokens: { ...document.tokens, animations: { ...current, durations: rest } },
+            },
+          };
+        }),
+
+      setEasing: (name, value) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+          return {
+            document: {
+              ...document,
+              tokens: {
+                ...document.tokens,
+                animations: { ...current, easings: { ...current.easings, [name]: value } },
+              },
+            },
+          };
+        }),
+
+      removeEasing: (name) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+          const { [name]: _removed, ...rest } = current.easings;
+          return {
+            document: {
+              ...document,
+              tokens: { ...document.tokens, animations: { ...current, easings: rest } },
+            },
+          };
+        }),
+
+      setKeyframe: (name, definition) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+          const keyframes = { ...(current.keyframes ?? {}), [name]: definition };
+          return {
+            document: {
+              ...document,
+              tokens: { ...document.tokens, animations: { ...current, keyframes } },
+            },
+          };
+        }),
+
+      removeKeyframe: (name) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+          const { [name]: _removed, ...rest } = current.keyframes ?? {};
+          const nextKeyframes = Object.keys(rest).length > 0 ? rest : undefined;
+          return {
+            document: {
+              ...document,
+              tokens: {
+                ...document.tokens,
+                animations: { ...current, keyframes: nextKeyframes },
+              },
+            },
+          };
+        }),
+
+      setKeyframeStop: (keyframeName, stopIndex, stop) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+          const def = current.keyframes?.[keyframeName];
+          if (!def) {
+            throw new Error(`project-store: unknown keyframe "${keyframeName}"`);
+          }
+          const stops = def.stops.slice();
+          if (stopIndex >= 0 && stopIndex < stops.length) {
+            stops[stopIndex] = stop;
+          } else {
+            stops.push(stop);
+          }
+          return {
+            document: {
+              ...document,
+              tokens: {
+                ...document.tokens,
+                animations: {
+                  ...current,
+                  keyframes: { ...current.keyframes, [keyframeName]: { stops } },
+                },
+              },
+            },
+          };
+        }),
+
+      removeKeyframeStop: (keyframeName, stopIndex) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          const current = document.tokens.animations ?? DEFAULT_ANIMATION_TOKENS;
+          const def = current.keyframes?.[keyframeName];
+          if (!def) {
+            throw new Error(`project-store: unknown keyframe "${keyframeName}"`);
+          }
+          const stops = def.stops.filter((_, i) => i !== stopIndex);
+          return {
+            document: {
+              ...document,
+              tokens: {
+                ...document.tokens,
+                animations: {
+                  ...current,
+                  keyframes: { ...current.keyframes, [keyframeName]: { stops } },
+                },
+              },
+            },
+          };
+        }),
+
+      setVariantClass: (componentId, axis, option, newString, originalString) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          const componentExists = document.components.some((c) => c.id === componentId);
+          if (!componentExists) {
+            throw new Error(`project-store: unknown componentId "${componentId}"`);
+          }
+
+          const existingIndex = document.overrides.findIndex((o) => o.componentId === componentId);
+          const existing = existingIndex >= 0 ? document.overrides[existingIndex] : undefined;
+
+          // Clearing the option: either passed undefined or matches the original.
+          const shouldClear = newString === undefined || newString === originalString;
+
+          // Build the next variants map for this component.
+          const nextVariants: NonNullable<ComponentOverride['variants']> = {
+            ...(existing?.variants ?? {}),
+          };
+          const axisMap = { ...(nextVariants[axis] ?? {}) };
+          if (shouldClear) {
+            delete axisMap[option];
+          } else {
+            axisMap[option] = { replaceWith: newString };
+          }
+          if (Object.keys(axisMap).length === 0) {
+            delete nextVariants[axis];
+          } else {
+            nextVariants[axis] = axisMap;
+          }
+
+          const variantsEmpty = Object.keys(nextVariants).length === 0;
+          const next: ComponentOverride = {
+            ...existing,
+            componentId,
+            variants: variantsEmpty ? undefined : nextVariants,
+          };
+
+          // Drop the whole override if nothing remains (no variants, no scopedVars).
+          const overrideIsEmpty = variantsEmpty && !next.scopedVars;
+          const overrides = (() => {
+            if (overrideIsEmpty) {
+              return existingIndex >= 0
+                ? document.overrides.filter((_, i) => i !== existingIndex)
+                : document.overrides;
+            }
+            if (existingIndex >= 0) {
+              return document.overrides.map((o, i) => (i === existingIndex ? next : o));
+            }
+            return [...document.overrides, next];
+          })();
+
+          return { document: { ...document, overrides } };
+        }),
+
+      upsertOverride: (override) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          const componentExists = document.components.some((c) => c.id === override.componentId);
+          if (!componentExists) {
+            throw new Error(
+              `project-store: cannot add override for unknown componentId "${override.componentId}"`,
+            );
+          }
+          const existing = document.overrides.findIndex(
+            (o) => o.componentId === override.componentId,
+          );
+          const overrides =
+            existing >= 0
+              ? document.overrides.map((o, i) => (i === existing ? override : o))
+              : [...document.overrides, override];
+          return { document: { ...document, overrides } };
+        }),
+
+      removeOverride: (componentId) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          return {
+            document: {
+              ...document,
+              overrides: document.overrides.filter((o) => o.componentId !== componentId),
+            },
+          };
+        }),
+
+      savePreset: (name) => {
+        const document = requireDocument(get().document);
+        const preset: Preset = {
+          id: uniqueId('preset'),
+          name,
+          tokens: document.tokens,
+          overrides: document.overrides.length > 0 ? document.overrides : undefined,
+        };
+        set({ document: { ...document, presets: [...document.presets, preset] } });
+        return preset;
+      },
+
+      loadPreset: (id) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          const preset = document.presets.find((p) => p.id === id);
+          if (!preset) throw new Error(`project-store: preset "${id}" not found`);
+          return {
+            document: {
+              ...document,
+              tokens: preset.tokens,
+              overrides: preset.overrides ?? [],
+            },
+          };
+        }),
+
+      removePreset: (id) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          return {
+            document: {
+              ...document,
+              presets: document.presets.filter((p) => p.id !== id),
+            },
+          };
+        }),
     }),
+    {
+      // Only track document changes — action closures aren't state and would
+      // otherwise fill the history stack with identical references.
+      partialize: (state) => ({ document: state.document }),
+      limit: 100,
+      // Coalesce rapid updates within 250ms into a single history entry so a
+      // slider drag becomes one undo step, not one per frame.
+      handleSet: (handleSet) => {
+        let timeout: ReturnType<typeof setTimeout> | null = null;
+        return (pastState) => {
+          if (timeout) clearTimeout(timeout);
+          timeout = setTimeout(() => {
+            handleSet(pastState);
+            timeout = null;
+          }, 250);
+        };
+      },
+      // Skip pushing the initial `load()` onto the history stack — it's the
+      // baseline, not something users should be able to undo.
+      equality: (a, b) => a.document === b.document,
+    },
+  ),
+);
 
-  setVariantClass: (componentId, axis, option, newString, originalString) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      const componentExists = document.components.some((c) => c.id === componentId);
-      if (!componentExists) {
-        throw new Error(`project-store: unknown componentId "${componentId}"`);
-      }
-
-      const existingIndex = document.overrides.findIndex((o) => o.componentId === componentId);
-      const existing = existingIndex >= 0 ? document.overrides[existingIndex] : undefined;
-
-      // Clearing the option: either passed undefined or matches the original.
-      const shouldClear = newString === undefined || newString === originalString;
-
-      // Build the next variants map for this component.
-      const nextVariants: NonNullable<ComponentOverride['variants']> = {
-        ...(existing?.variants ?? {}),
-      };
-      const axisMap = { ...(nextVariants[axis] ?? {}) };
-      if (shouldClear) {
-        delete axisMap[option];
-      } else {
-        axisMap[option] = { replaceWith: newString };
-      }
-      if (Object.keys(axisMap).length === 0) {
-        delete nextVariants[axis];
-      } else {
-        nextVariants[axis] = axisMap;
-      }
-
-      const variantsEmpty = Object.keys(nextVariants).length === 0;
-      const next: ComponentOverride = {
-        ...existing,
-        componentId,
-        variants: variantsEmpty ? undefined : nextVariants,
-      };
-
-      // Drop the whole override if nothing remains (no variants, no scopedVars).
-      const overrideIsEmpty = variantsEmpty && !next.scopedVars;
-      const overrides = (() => {
-        if (overrideIsEmpty) {
-          return existingIndex >= 0
-            ? document.overrides.filter((_, i) => i !== existingIndex)
-            : document.overrides;
-        }
-        if (existingIndex >= 0) {
-          return document.overrides.map((o, i) => (i === existingIndex ? next : o));
-        }
-        return [...document.overrides, next];
-      })();
-
-      return { document: { ...document, overrides } };
-    }),
-
-  upsertOverride: (override) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      const componentExists = document.components.some((c) => c.id === override.componentId);
-      if (!componentExists) {
-        throw new Error(
-          `project-store: cannot add override for unknown componentId "${override.componentId}"`,
-        );
-      }
-      const existing = document.overrides.findIndex((o) => o.componentId === override.componentId);
-      const overrides =
-        existing >= 0
-          ? document.overrides.map((o, i) => (i === existing ? override : o))
-          : [...document.overrides, override];
-      return { document: { ...document, overrides } };
-    }),
-
-  removeOverride: (componentId) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      return {
-        document: {
-          ...document,
-          overrides: document.overrides.filter((o) => o.componentId !== componentId),
-        },
-      };
-    }),
-
-  savePreset: (name) => {
-    const document = requireDocument(get().document);
-    const preset: Preset = {
-      id: uniqueId('preset'),
-      name,
-      tokens: document.tokens,
-      overrides: document.overrides.length > 0 ? document.overrides : undefined,
-    };
-    set({ document: { ...document, presets: [...document.presets, preset] } });
-    return preset;
-  },
-
-  loadPreset: (id) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      const preset = document.presets.find((p) => p.id === id);
-      if (!preset) throw new Error(`project-store: preset "${id}" not found`);
-      return {
-        document: {
-          ...document,
-          tokens: preset.tokens,
-          overrides: preset.overrides ?? [],
-        },
-      };
-    }),
-
-  removePreset: (id) =>
-    set((state) => {
-      const document = requireDocument(state.document);
-      return {
-        document: {
-          ...document,
-          presets: document.presets.filter((p) => p.id !== id),
-        },
-      };
-    }),
-}));
+/**
+ * Convenience accessor for the temporal API. Use inside components via a
+ * selector, e.g. `useProjectStore.temporal((s) => s.undo)`.
+ */
+export const useTemporalStore = useProjectStore.temporal as unknown as StoreApi<
+  TemporalState<{ document: ProjectDocument | null }>
+> &
+  (<T>(selector: (state: TemporalState<{ document: ProjectDocument | null }>) => T) => T);
