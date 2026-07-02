@@ -40,6 +40,26 @@ interface GitHubContentEntry {
   download_url: string | null;
 }
 
+interface GitHubTreeEntry {
+  path: string;
+  type: 'blob' | 'tree';
+}
+
+interface GitHubTreeResponse {
+  tree: GitHubTreeEntry[];
+  truncated: boolean;
+}
+
+/** Thrown when the initial subdir has no components.json but discovery has options to offer. */
+export class ShadcnProjectAmbiguousError extends Error {
+  constructor(public candidates: string[]) {
+    super(
+      `Found multiple components.json files in this repo. Include the subdir in the URL — e.g. https://github.com/<owner>/<repo>/tree/<branch>/${candidates[0]}. Candidates: ${candidates.join(', ')}`,
+    );
+    this.name = 'ShadcnProjectAmbiguousError';
+  }
+}
+
 async function githubJson<T>(url: string): Promise<T> {
   const res = await fetch(url, {
     headers: { Accept: 'application/vnd.github+json' },
@@ -67,39 +87,87 @@ function joinPath(...parts: string[]): string {
 }
 
 /**
- * Fetch a shadcn project from a public GitHub repo. Uses the contents API
- * to discover the components/ui directory contents, then raw.githubusercontent.com
- * to pull each file (no rate limit on raw). Total API calls: 1 per directory.
+ * Walk the repo tree and return the parent dir of every `components.json`
+ * found (empty string for repo root). Uses one git/trees API call with
+ * recursive=1 — cheap in rate-limit terms.
+ */
+export async function discoverShadcnRoots(ref: GitHubProjectRef): Promise<string[]> {
+  const url = `https://api.github.com/repos/${ref.owner}/${ref.repo}/git/trees/${encodeURIComponent(
+    ref.branch,
+  )}?recursive=1`;
+  const tree = await githubJson<GitHubTreeResponse>(url);
+  const dirs: string[] = [];
+  for (const entry of tree.tree) {
+    if (entry.type !== 'blob') continue;
+    if (!entry.path.endsWith('components.json')) continue;
+    // Ignore `node_modules/**/components.json` — those are library metadata,
+    // not shadcn project roots.
+    if (entry.path.includes('node_modules/')) continue;
+    const parent =
+      entry.path === 'components.json' ? '' : entry.path.replace(/\/components\.json$/, '');
+    dirs.push(parent);
+  }
+  return dirs;
+}
+
+async function fetchTextIfExists(url: string): Promise<string | null> {
+  const res = await fetch(url);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
+  return res.text();
+}
+
+/**
+ * Fetch a shadcn project from a public GitHub repo. If the initial path has
+ * no components.json, walks the whole tree to find one — silently uses the
+ * only candidate, or throws with the list if there's more than one.
+ *
+ * Uses raw.githubusercontent.com for file bodies (uncapped) and one contents
+ * API call per directory listing (rate-limited).
  */
 export async function fetchProjectFromGitHub(ref: GitHubProjectRef): Promise<ProjectSources> {
   const rawBase = `https://raw.githubusercontent.com/${ref.owner}/${ref.repo}/${ref.branch}`;
   const apiBase = `https://api.github.com/repos/${ref.owner}/${ref.repo}/contents`;
-  const rootWithinRepo = ref.subdir;
 
-  // 1) components.json is required — it tells us where the CSS entry lives.
-  const componentsJsonPath = joinPath(rootWithinRepo, 'components.json');
-  const componentsJson = await fetchText(`${rawBase}/${componentsJsonPath}`);
+  let effectiveSubdir = ref.subdir;
+  let componentsJson = await fetchTextIfExists(
+    `${rawBase}/${joinPath(effectiveSubdir, 'components.json')}`,
+  );
+
+  // Missing at the given path — see if we can find one automatically.
+  if (componentsJson === null) {
+    const candidates = await discoverShadcnRoots(ref);
+    if (candidates.length === 0) {
+      throw new Error(
+        `No components.json anywhere in ${ref.owner}/${ref.repo}@${ref.branch} — is this a shadcn project?`,
+      );
+    }
+    if (candidates.length > 1 && !candidates.includes(effectiveSubdir)) {
+      throw new ShadcnProjectAmbiguousError(candidates);
+    }
+    // Exactly one candidate, or the user's subdir happens to be one of them.
+    effectiveSubdir = candidates.includes(effectiveSubdir) ? effectiveSubdir : candidates[0];
+    componentsJson = await fetchText(`${rawBase}/${joinPath(effectiveSubdir, 'components.json')}`);
+  }
+
   const parsed = JSON.parse(componentsJson) as {
     tailwind: { css: string };
     aliases: { ui: string };
   };
 
-  // 2) globals.css lives at the tailwind.css path (relative to project root).
   const cssRel = parsed.tailwind.css;
-  const globalsCss = await fetchText(`${rawBase}/${joinPath(rootWithinRepo, cssRel)}`);
+  const globalsCss = await fetchText(`${rawBase}/${joinPath(effectiveSubdir, cssRel)}`);
 
-  // 3) list components/ui/ via the contents API. The aliases.ui value is a
-  //    tsconfig-style alias (`@/components/ui`), not a real path. Real shadcn
-  //    convention puts UI components in `components/ui` under the project
-  //    root, so we hardcode that.
   const uiDirRel = 'components/ui';
-  const contentsUrl = `${apiBase}/${joinPath(rootWithinRepo, uiDirRel)}?ref=${encodeURIComponent(ref.branch)}`;
+  const contentsUrl = `${apiBase}/${joinPath(
+    effectiveSubdir,
+    uiDirRel,
+  )}?ref=${encodeURIComponent(ref.branch)}`;
   const listing = await githubJson<GitHubContentEntry[]>(contentsUrl);
   const uiFiles = listing.filter(
     (e) => e.type === 'file' && e.name.endsWith('.tsx') && !e.name.endsWith('.test.tsx'),
   );
 
-  // 4) pull each source file in parallel.
   const componentSources: Record<string, string> = {};
   await Promise.all(
     uiFiles.map(async (entry) => {
@@ -113,6 +181,6 @@ export async function fetchProjectFromGitHub(ref: GitHubProjectRef): Promise<Pro
     componentsJson,
     globalsCss,
     componentSources,
-    name: ref.subdir ? `${ref.repo}/${ref.subdir}` : ref.repo,
+    name: effectiveSubdir ? `${ref.repo}/${effectiveSubdir}` : ref.repo,
   };
 }

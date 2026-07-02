@@ -251,3 +251,71 @@ test('Connect modal: invalid URL surfaces an inline error', async ({ page }) => 
   await page.getByRole('button', { name: 'Connect', exact: true }).click();
   await expect(page.getByText('Could not parse that URL', { exact: false })).toBeVisible();
 });
+
+test('Connect modal: repo without components.json surfaces the "not a shadcn project" hint', async ({
+  page,
+}) => {
+  await page.goto('/');
+
+  // 404 on root components.json → fetcher falls back to git/trees discovery.
+  await page.route(
+    'https://raw.githubusercontent.com/example/no-shadcn/main/components.json',
+    (route) => route.fulfill({ status: 404, body: 'not found' }),
+  );
+  await page.route(
+    'https://api.github.com/repos/example/no-shadcn/git/trees/main?recursive=1',
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          tree: [
+            { path: 'README.md', type: 'blob' },
+            { path: 'src/index.ts', type: 'blob' },
+          ],
+          truncated: false,
+        }),
+      }),
+  );
+
+  await page.getByRole('button', { name: '⇱ Connect' }).click();
+  await page
+    .getByPlaceholder('https://github.com/', { exact: false })
+    .fill('https://github.com/example/no-shadcn');
+  await page.getByRole('button', { name: 'Connect', exact: true }).click();
+  await expect(page.getByText('No components.json anywhere', { exact: false })).toBeVisible();
+});
+
+test('Connect modal: monorepo with multiple components.json files lists candidates', async ({
+  page,
+}) => {
+  await page.goto('/');
+
+  await page.route('https://raw.githubusercontent.com/example/mono/main/components.json', (route) =>
+    route.fulfill({ status: 404, body: 'not found' }),
+  );
+  await page.route(
+    'https://api.github.com/repos/example/mono/git/trees/main?recursive=1',
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          tree: [
+            { path: 'apps/web/components.json', type: 'blob' },
+            { path: 'apps/docs/components.json', type: 'blob' },
+            { path: 'packages/ui/README.md', type: 'blob' },
+          ],
+          truncated: false,
+        }),
+      }),
+  );
+
+  await page.getByRole('button', { name: '⇱ Connect' }).click();
+  await page
+    .getByPlaceholder('https://github.com/', { exact: false })
+    .fill('https://github.com/example/mono');
+  await page.getByRole('button', { name: 'Connect', exact: true }).click();
+  await expect(page.getByText('Found multiple components.json', { exact: false })).toBeVisible();
+  await expect(page.getByText('apps/web', { exact: false })).toBeVisible();
+});
