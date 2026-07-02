@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  assignPaletteFromImage,
   type GeneratedPalette,
   generatePalette,
   KEY_PALETTE_TOKENS,
   type KeyPaletteToken,
   type OklchTriplet,
   type PaletteStrategy,
+  sampleImagePalette,
 } from '@/palette';
 import type { ColorValue, ProjectDocument } from '@/schema';
 import { useProjectStore } from '@/store/project-store';
@@ -87,6 +89,27 @@ export function PaletteBar({ document }: PaletteBarProps) {
     destructive: true, // start locked — keeping the red default unless user opts in
     background: false,
   }));
+  const [dropActive, setDropActive] = useState(false);
+  const [sampling, setSampling] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const applyImageFile = useCallback(
+    async (file: File) => {
+      setSampling(true);
+      try {
+        const clusters = await sampleImagePalette(file, { k: 6 });
+        const palette = assignPaletteFromImage({
+          clusters,
+          currentDestructive:
+            colorValueToTriplet(document.tokens.colors.light.destructive) ?? undefined,
+        });
+        applyPalette(palette);
+      } finally {
+        setSampling(false);
+      }
+    },
+    [applyPalette, document.tokens.colors.light.destructive],
+  );
 
   const generate = useCallback(() => {
     const lockedTriplets: Partial<Record<KeyPaletteToken, OklchTriplet>> = {};
@@ -158,6 +181,14 @@ export function PaletteBar({ document }: PaletteBarProps) {
           </button>
           <button
             type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sampling}
+            className="rounded-md border border-neutral-700 px-3 py-1 text-xs text-neutral-200 hover:border-neutral-500 disabled:opacity-50"
+          >
+            {sampling ? 'Sampling…' : '⇪ From image'}
+          </button>
+          <button
+            type="button"
             onClick={() => {
               const name = window.prompt('Save palette as preset:');
               if (name?.trim()) savePreset(name.trim());
@@ -168,7 +199,27 @@ export function PaletteBar({ document }: PaletteBarProps) {
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-5 gap-2">
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: drop target is
+         decorative sugar over the file input above; the file input remains
+         the accessible entry point. */}
+      <div
+        onDragOver={(e) => {
+          if (Array.from(e.dataTransfer.types).includes('Files')) {
+            e.preventDefault();
+            setDropActive(true);
+          }
+        }}
+        onDragLeave={() => setDropActive(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDropActive(false);
+          const file = e.dataTransfer.files[0];
+          if (file?.type.startsWith('image/')) void applyImageFile(file);
+        }}
+        className={`relative grid grid-cols-5 gap-2 rounded-md transition-colors ${
+          dropActive ? 'ring-2 ring-neutral-100 ring-offset-2 ring-offset-neutral-950' : ''
+        }`}
+      >
         {KEY_PALETTE_TOKENS.map((token) => (
           <Swatch
             key={token}
@@ -178,7 +229,24 @@ export function PaletteBar({ document }: PaletteBarProps) {
             onToggleLock={() => toggleLock(token)}
           />
         ))}
+        {dropActive ? (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-md bg-neutral-950/70 text-xs font-medium text-neutral-100">
+            Drop to sample colors
+          </div>
+        ) : null}
       </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        aria-label="Sample palette from image"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void applyImageFile(file);
+          e.target.value = ''; // allow re-selecting the same file next time
+        }}
+      />
     </section>
   );
 }
