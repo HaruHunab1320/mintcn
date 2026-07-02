@@ -148,7 +148,7 @@ test('override panel: editing button size.sm flows into the document as a replac
     .locator('select');
   await overrideSelect.selectOption('button');
 
-  const smTextarea = page.getByLabel('button size sm classes', { exact: true });
+  const smTextarea = page.getByLabel('button size sm base classes', { exact: true });
   await smTextarea.fill('h-8 rounded-md px-5 text-lg');
   await smTextarea.blur();
 

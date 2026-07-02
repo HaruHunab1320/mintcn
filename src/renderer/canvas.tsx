@@ -1,5 +1,5 @@
 import { ChevronRight, Mail, Settings, Star, Terminal, User } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { type CSSProperties, type ReactNode, useState } from 'react';
 import type { ProjectDocument } from '@/schema';
 import {
   Accordion,
@@ -88,6 +88,52 @@ const FORCE_STATE_LABELS: Record<ForceState, string> = {
   active: 'active',
   disabled: 'disabled',
 };
+
+export type DevicePreset = 'auto' | 'mobile' | 'tablet' | 'desktop';
+
+const DEVICE_WIDTHS: Record<Exclude<DevicePreset, 'auto'>, number> = {
+  mobile: 375,
+  tablet: 768,
+  desktop: 1440,
+};
+
+const DEVICE_LABELS: Record<DevicePreset, string> = {
+  auto: 'Auto',
+  mobile: '375',
+  tablet: '768',
+  desktop: '1440',
+};
+
+interface DeviceToggleProps {
+  value: DevicePreset;
+  onChange: (next: DevicePreset) => void;
+}
+
+function DeviceToggle({ value, onChange }: DeviceToggleProps) {
+  const options: DevicePreset[] = ['auto', 'mobile', 'tablet', 'desktop'];
+  return (
+    <div
+      className="inline-flex items-center gap-1 rounded-md border border-neutral-800 p-1 text-xs"
+      title="Tailwind's sm:/md:/lg: utilities respond to the browser viewport, not the canvas width — resize your window to test full responsive behavior."
+    >
+      <span className="px-1.5 text-[10px] uppercase tracking-wide text-neutral-500">width</span>
+      {options.map((s) => (
+        <button
+          key={s}
+          type="button"
+          onClick={() => onChange(s)}
+          className={`rounded px-2 py-1 transition-colors ${
+            value === s
+              ? 'bg-neutral-100 text-neutral-900'
+              : 'text-neutral-400 hover:text-neutral-100'
+          }`}
+        >
+          {DEVICE_LABELS[s]}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 interface ForceStateToggleProps {
   value: ForceState;
@@ -431,6 +477,7 @@ export function Canvas({
 }: CanvasProps) {
   const [localTheme, setLocalTheme] = useState<PreviewTheme>('light');
   const [localForceState, setLocalForceState] = useForceState();
+  const [device, setDevice] = useState<DevicePreset>('auto');
 
   const theme = controlledTheme ?? localTheme;
   const forceState = controlledForceState ?? localForceState;
@@ -443,19 +490,29 @@ export function Canvas({
     else setLocalForceState(next);
   };
 
+  const viewportStyle: CSSProperties =
+    device === 'auto'
+      ? { resize: 'horizontal', width: '100%' }
+      : { width: `${DEVICE_WIDTHS[device]}px`, maxWidth: '100%' };
+
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-sm font-medium text-neutral-200">Preview</h2>
         <div className="flex flex-wrap items-center gap-2">
+          <DeviceToggle value={device} onChange={setDevice} />
           <ForceStateToggle value={forceState} onChange={setForceState} />
           <ThemeToggle theme={theme} onChange={setTheme} />
         </div>
       </div>
 
       <div
-        className="overflow-auto resize-x min-w-[320px] max-w-full rounded-lg border border-neutral-800"
-        style={{ resize: 'horizontal', width: '100%' }}
+        aria-label="Preview viewport"
+        data-device-preset={device}
+        className={`overflow-auto min-w-[320px] max-w-full rounded-lg border border-neutral-800 transition-all ${
+          device === 'auto' ? 'resize-x' : ''
+        }`}
+        style={viewportStyle}
       >
         <PreviewRoot
           document={document}

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ComponentMeta, ProjectDocument } from '@/schema';
 import { useProjectStore } from '@/store/project-store';
+import { type Breakpoint, BREAKPOINTS, joinByBreakpoint, splitByBreakpoint } from '../breakpoints';
 import { PanelSection } from '../panel-section';
 
 interface OverridePanelProps {
@@ -16,6 +17,15 @@ interface VariantOptionEditorProps {
   isOverridden: boolean;
 }
 
+const BREAKPOINT_LABELS: Record<Breakpoint, string> = {
+  base: 'Base',
+  sm: 'sm',
+  md: 'md',
+  lg: 'lg',
+  xl: 'xl',
+  '2xl': '2xl',
+};
+
 function VariantOptionEditor({
   component,
   axis,
@@ -25,21 +35,39 @@ function VariantOptionEditor({
   isOverridden,
 }: VariantOptionEditorProps) {
   const setVariantClass = useProjectStore((s) => s.setVariantClass);
-  // Local buffer so users can type freely before the store rewrites the value.
   const [draft, setDraft] = useState(current);
+  const [activeBreakpoint, setActiveBreakpoint] = useState<Breakpoint>('base');
   useEffect(() => setDraft(current), [current]);
 
-  const commit = () => {
-    if (draft === current) return;
-    setVariantClass(component.id, axis, option, draft, original);
+  const buckets = useMemo(() => splitByBreakpoint(draft), [draft]);
+  const activeValue = buckets[activeBreakpoint];
+
+  const commit = (nextDraft: string) => {
+    if (nextDraft === current) return;
+    setVariantClass(component.id, axis, option, nextDraft, original);
   };
   const reset = () => {
     setDraft(original);
     setVariantClass(component.id, axis, option, undefined, original);
   };
 
+  // How many classes exist per bucket — used to badge tabs so users see
+  // which breakpoints already have overrides in play.
+  const counts = useMemo(() => {
+    const out: Record<Breakpoint, number> = { base: 0, sm: 0, md: 0, lg: 0, xl: 0, '2xl': 0 };
+    for (const bp of BREAKPOINTS) {
+      out[bp] = buckets[bp].split(/\s+/).filter(Boolean).length;
+    }
+    return out;
+  }, [buckets]);
+
+  const updateBreakpoint = (breakpoint: Breakpoint, value: string) => {
+    const next = joinByBreakpoint({ ...buckets, [breakpoint]: value });
+    setDraft(next);
+  };
+
   return (
-    <div className="flex flex-col gap-1 rounded-md border border-neutral-800 bg-neutral-950/40 p-2">
+    <div className="flex flex-col gap-1.5 rounded-md border border-neutral-800 bg-neutral-950/40 p-2">
       <div className="flex items-center justify-between text-[11px]">
         <span className="font-mono text-neutral-200">
           {axis}
@@ -54,14 +82,55 @@ function VariantOptionEditor({
           <span className="text-neutral-600">original</span>
         )}
       </div>
+
+      <div className="flex flex-wrap items-center gap-1 border-b border-neutral-800 pb-1">
+        {BREAKPOINTS.map((bp) => (
+          <button
+            key={bp}
+            type="button"
+            onClick={() => setActiveBreakpoint(bp)}
+            className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] transition-colors ${
+              bp === activeBreakpoint
+                ? 'bg-neutral-100 text-neutral-900'
+                : 'text-neutral-500 hover:text-neutral-200'
+            }`}
+          >
+            {BREAKPOINT_LABELS[bp]}
+            {counts[bp] > 0 ? (
+              <span
+                className={`rounded px-1 text-[9px] ${
+                  bp === activeBreakpoint
+                    ? 'bg-neutral-800 text-neutral-100'
+                    : 'bg-neutral-800/60 text-neutral-400'
+                }`}
+              >
+                {counts[bp]}
+              </span>
+            ) : null}
+          </button>
+        ))}
+      </div>
+
       <textarea
-        aria-label={`${component.id} ${axis} ${option} classes`}
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
+        aria-label={`${component.id} ${axis} ${option} ${activeBreakpoint} classes`}
+        value={activeValue}
+        onChange={(e) => updateBreakpoint(activeBreakpoint, e.target.value)}
+        onBlur={() => commit(draft)}
         spellCheck={false}
-        className="min-h-[56px] resize-y rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[10px] leading-snug text-neutral-100 outline-none focus:border-neutral-600"
+        placeholder={
+          activeBreakpoint === 'base'
+            ? 'flex items-center gap-2 …'
+            : `Classes to apply at ≥${activeBreakpoint}. Prefix stripped — write text-sm, not ${activeBreakpoint}:text-sm.`
+        }
+        className="min-h-[52px] resize-y rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[10px] leading-snug text-neutral-100 outline-none focus:border-neutral-600"
       />
+      {activeBreakpoint !== 'base' ? (
+        <p className="text-[10px] text-neutral-500">
+          Applied at the {activeBreakpoint} breakpoint and up. Tailwind's sm:/md:/lg: utilities
+          respond to the browser viewport, not the preview canvas width.
+        </p>
+      ) : null}
+
       {isOverridden ? (
         <details className="text-[10px] text-neutral-500">
           <summary className="cursor-pointer">show original</summary>
@@ -100,7 +169,7 @@ export function OverridePanel({ document }: OverridePanelProps) {
     <PanelSection
       panelId="overrides"
       title="Overrides"
-      description="Edit cva variant classes · exports via emit-component-source"
+      description="Edit cva variant classes · per-breakpoint · exports via emit-component-source"
     >
       <select
         value={selectedId}

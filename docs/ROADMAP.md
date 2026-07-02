@@ -4,7 +4,8 @@ Post-MVP iteration plan. The MVP loop (edit → diff → export) is shipped; thi
 
 Live status:
 - ✅ MVP (M0–M6, presets, export shapes, acceptance script)
-- 🟡 In flight: Palette system
+- ✅ Post-MVP wave: palette, ⌘K, shadow editor, undo/redo, easing editor, image→palette, connect-your-own-project
+- ✅ Responsive: device preview toggle + per-breakpoint override tabs
 - ⏳ Queued: everything else below
 
 ---
