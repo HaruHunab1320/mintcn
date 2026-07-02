@@ -28,8 +28,15 @@ const DEFAULT_ANIMATION_TOKENS: AnimationTokens = { durations: {}, easings: {} }
 
 interface ProjectState {
   document: ProjectDocument | null;
+  /**
+   * Raw source bytes of every file the emitters might rewrite, keyed by
+   * project-root-relative path. Used by the DiffView + emit-project to
+   * compare emitter output against the on-disk source. Populated at load
+   * time (from the fixture, from a GitHub fetch, etc.).
+   */
+  originals: Record<string, string>;
 
-  load: (input: unknown) => void;
+  load: (input: unknown, originals?: Record<string, string>) => void;
   unload: () => void;
 
   setTokenColor: (theme: Theme, token: SemanticColorToken, value: ColorValue) => void;
@@ -103,13 +110,14 @@ export const useProjectStore = create<ProjectState>()(
   temporal(
     (set, get) => ({
       document: null,
+      originals: {},
 
-      load: (input) => {
+      load: (input, originals) => {
         const document = validateProjectDocument(input);
-        set({ document });
+        set(originals !== undefined ? { document, originals } : { document });
       },
 
-      unload: () => set({ document: null }),
+      unload: () => set({ document: null, originals: {} }),
 
       setTokenColor: (theme, token, value) =>
         set((state) => {

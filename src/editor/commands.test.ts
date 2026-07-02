@@ -12,6 +12,8 @@ function buildCtx(): CommandContext {
     savePresetPrompt: vi.fn(),
     undo: vi.fn(),
     redo: vi.fn(),
+    openConnect: vi.fn(),
+    resetToFixture: vi.fn(),
   };
 }
 
@@ -21,6 +23,8 @@ describe('buildCommands', () => {
     const ids = commands.map((c) => c.id);
     expect(ids).toContain('history.undo');
     expect(ids).toContain('history.redo');
+    expect(ids).toContain('project.connect');
+    expect(ids).toContain('project.reset');
     expect(ids).toContain('palette.generate');
     expect(ids).toContain('theme.toggle');
     expect(ids).toContain('force-state.cycle');

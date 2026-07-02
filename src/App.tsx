@@ -4,6 +4,7 @@ import { changedFiles, emitProject } from '@/codegen';
 import {
   buildCommands,
   CommandPalette,
+  ConnectProject,
   DiffView,
   downloadProjectZip,
   downloadSingleFile,
@@ -33,6 +34,7 @@ function useTemporal() {
 
 export default function App() {
   const document = useProjectStore((s) => s.document);
+  const originals = useProjectStore((s) => s.originals);
   const load = useProjectStore((s) => s.load);
   const applyPalette = useProjectStore((s) => s.applyPalette);
   const savePreset = useProjectStore((s) => s.savePreset);
@@ -41,11 +43,12 @@ export default function App() {
   const canRedo = temporal.futureStates.length > 0;
   const [showDiff, setShowDiff] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [connectOpen, setConnectOpen] = useState(false);
   const [theme, setTheme] = useState<PreviewTheme>('light');
   const [forceState, setForceState] = useState<ForceState>('off');
 
   useEffect(() => {
-    load(fixtureProject);
+    load(fixtureProject, fixtureOriginals);
     if (import.meta.env.DEV) {
       (window as unknown as { __TINCTURE_STORE__: typeof useProjectStore }).__TINCTURE_STORE__ =
         useProjectStore;
@@ -54,8 +57,8 @@ export default function App() {
 
   const emitted = useMemo(() => {
     if (!document) return [];
-    return emitProject({ document, originals: fixtureOriginals });
-  }, [document]);
+    return emitProject({ document, originals });
+  }, [document, originals]);
   const changed = useMemo(() => changedFiles(emitted), [emitted]);
 
   const archiveName = document
@@ -100,6 +103,11 @@ export default function App() {
   const undo = useCallback(() => useProjectStore.temporal.getState().undo(), []);
   const redo = useCallback(() => useProjectStore.temporal.getState().redo(), []);
 
+  const resetToFixture = useCallback(() => {
+    load(fixtureProject, fixtureOriginals);
+    useProjectStore.temporal.getState().clear();
+  }, [load]);
+
   const commands = useMemo(
     () =>
       buildCommands({
@@ -112,6 +120,8 @@ export default function App() {
         savePresetPrompt,
         undo,
         redo,
+        openConnect: () => setConnectOpen(true),
+        resetToFixture,
       }),
     [
       scrollToPanel,
@@ -122,6 +132,7 @@ export default function App() {
       savePresetPrompt,
       undo,
       redo,
+      resetToFixture,
     ],
   );
 
@@ -172,6 +183,13 @@ export default function App() {
         </div>
         {document ? (
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setConnectOpen(true)}
+              className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-3 py-1.5 text-xs text-neutral-200 hover:border-neutral-500"
+            >
+              ⇱ Connect
+            </button>
             <button
               type="button"
               onClick={() => setPaletteOpen(true)}
@@ -240,6 +258,18 @@ export default function App() {
         <main className="p-6 text-sm text-neutral-500">Loading…</main>
       )}
       {showDiff ? <DiffView files={emitted} onClose={() => setShowDiff(false)} /> : null}
+      <ConnectProject
+        open={connectOpen}
+        onClose={() => setConnectOpen(false)}
+        onLoaded={(doc, orig) => {
+          load(doc, orig);
+          useProjectStore.temporal.getState().clear();
+        }}
+        onResetToFixture={() => {
+          resetToFixture();
+          setConnectOpen(false);
+        }}
+      />
       <CommandPalette
         commands={commands}
         open={paletteOpen}

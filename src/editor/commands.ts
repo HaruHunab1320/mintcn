@@ -28,6 +28,8 @@ export interface CommandContext {
   savePresetPrompt: () => void;
   undo: () => void;
   redo: () => void;
+  openConnect: () => void;
+  resetToFixture: () => void;
 }
 
 const PANEL_LABELS: { id: PanelId; label: string }[] = [
@@ -51,6 +53,22 @@ const PANEL_LABELS: { id: PanelId; label: string }[] = [
  */
 export function buildCommands(ctx: CommandContext): CommandEntry[] {
   const commands: CommandEntry[] = [];
+
+  commands.push({
+    id: 'project.connect',
+    label: 'Connect a GitHub project…',
+    group: 'Workflow',
+    keywords: ['connect', 'project', 'github', 'repo', 'import', 'load'],
+    action: ctx.openConnect,
+  });
+
+  commands.push({
+    id: 'project.reset',
+    label: 'Reset to fixture',
+    group: 'Workflow',
+    keywords: ['reset', 'fixture', 'demo', 'default'],
+    action: ctx.resetToFixture,
+  });
 
   commands.push({
     id: 'history.undo',
