@@ -52,11 +52,13 @@ interface GitHubTreeResponse {
 
 /** Thrown when the initial subdir has no components.json but discovery has options to offer. */
 export class ShadcnProjectAmbiguousError extends Error {
-  constructor(public candidates: string[]) {
+  candidates: string[];
+  constructor(candidates: string[]) {
     super(
       `Found multiple components.json files in this repo. Include the subdir in the URL — e.g. https://github.com/<owner>/<repo>/tree/<branch>/${candidates[0]}. Candidates: ${candidates.join(', ')}`,
     );
     this.name = 'ShadcnProjectAmbiguousError';
+    this.candidates = candidates;
   }
 }
 

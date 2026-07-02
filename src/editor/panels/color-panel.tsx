@@ -1,32 +1,34 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   type ColorValue,
   type ProjectDocument,
   SEMANTIC_COLOR_TOKENS,
   type SemanticColorToken,
 } from '@/schema';
-import { type Theme, useProjectStore } from '@/store/project-store';
-import { clampOklch, formatOklch, type OklchValue, parseOklch } from '../oklch';
+import type { Theme } from '@/store/project-store';
+import { ColorEditor, colorValueToCss } from '../color-editor';
 import { PanelSection } from '../panel-section';
-
-function colorToCss(value: ColorValue): string {
-  if (value.kind === 'literal') return value.value;
-  const basePercent = Math.round((1 - value.mix.amount) * 100);
-  return `color-mix(in ${value.mix.space}, var(--${value.from}) ${basePercent}%, ${value.mix.toward})`;
-}
 
 interface SwatchProps {
   token: SemanticColorToken;
   value: ColorValue;
   selected: boolean;
   onSelect: () => void;
+  onOpenPopover: (rect: DOMRect) => void;
 }
 
-function Swatch({ token, value, selected, onSelect }: SwatchProps) {
+function Swatch({ token, value, selected, onSelect, onOpenPopover }: SwatchProps) {
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
   return (
     <button
+      ref={buttonRef}
       type="button"
       onClick={onSelect}
+      onDoubleClick={() => {
+        const rect = buttonRef.current?.getBoundingClientRect();
+        if (rect) onOpenPopover(rect);
+      }}
+      title="Double-click to open the color picker"
       className={`group flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-xs transition-colors ${
         selected
           ? 'border-neutral-100 bg-neutral-100/5'
@@ -35,151 +37,77 @@ function Swatch({ token, value, selected, onSelect }: SwatchProps) {
     >
       <span
         className="h-4 w-4 shrink-0 rounded border border-neutral-700"
-        style={{ background: colorToCss(value) }}
+        style={{ background: colorValueToCss(value) }}
       />
       <span className="truncate font-mono text-[11px] text-neutral-300">{token}</span>
     </button>
   );
 }
 
-interface SliderRowProps {
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  value: number;
-  onChange: (next: number) => void;
-  hint?: string;
-}
-
-function SliderRow({ label, min, max, step, value, onChange, hint }: SliderRowProps) {
-  return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-baseline justify-between font-mono text-[11px]">
-        <span className="text-neutral-400">{label}</span>
-        <span className="text-neutral-500">{hint}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(Number.parseFloat(e.target.value))}
-          className="flex-1 accent-neutral-200"
-        />
-        <input
-          type="number"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => {
-            const n = Number.parseFloat(e.target.value);
-            if (Number.isFinite(n)) onChange(n);
-          }}
-          className="w-16 rounded border border-neutral-800 bg-neutral-950 px-1.5 py-0.5 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
-        />
-      </div>
-    </div>
-  );
-}
-
-interface EditorProps {
-  theme: Theme;
+interface PopoverState {
   token: SemanticColorToken;
-  value: ColorValue;
+  rect: DOMRect;
 }
 
-function ColorEditor({ theme, token, value }: EditorProps) {
-  const setTokenColor = useProjectStore((s) => s.setTokenColor);
-  const literal = value.kind === 'literal' ? value.value : colorToCss(value);
-  const oklch = parseOklch(literal);
+interface SwatchPopoverProps {
+  state: PopoverState;
+  theme: Theme;
+  value: ColorValue;
+  onClose: () => void;
+}
 
-  const writeOklch = (next: OklchValue) => {
-    const clamped = clampOklch(next);
-    setTokenColor(theme, token, {
-      kind: 'literal',
-      space: 'oklch',
-      value: formatOklch(clamped),
-    });
-  };
+function SwatchPopover({ state, theme, value, onClose }: SwatchPopoverProps) {
+  const ref = useRef<HTMLDivElement | null>(null);
 
-  const writeRaw = (raw: string) => {
-    const next = raw.trim();
-    if (!next) return;
-    const space: 'oklch' | 'hsl' | 'srgb' = next.startsWith('oklch')
-      ? 'oklch'
-      : next.startsWith('hsl')
-        ? 'hsl'
-        : 'srgb';
-    setTokenColor(theme, token, { kind: 'literal', space, value: next });
-  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    const onClick = (e: MouseEvent) => {
+      if (!ref.current) return;
+      if (ref.current.contains(e.target as Node)) return;
+      onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    // Delay one tick so the double-click that opened this popover doesn't
+    // immediately fire the outside-click handler and close it.
+    const timeout = setTimeout(() => {
+      document.addEventListener('mousedown', onClick);
+    }, 0);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onClick);
+      clearTimeout(timeout);
+    };
+  }, [onClose]);
+
+  // The colors panel lives in the right sidebar, so open the popover
+  // to the LEFT of the swatch. Also clamp so it never overflows the
+  // viewport vertically.
+  const POPOVER_WIDTH = 280;
+  const POPOVER_HEIGHT_ESTIMATE = 340;
+  const top = Math.max(8, Math.min(state.rect.top, window.innerHeight - POPOVER_HEIGHT_ESTIMATE));
+  const left = Math.max(8, state.rect.left - POPOVER_WIDTH - 12);
 
   return (
-    <div className="flex flex-col gap-3 rounded-md border border-neutral-800 bg-neutral-900/50 p-3">
-      <div className="flex items-center gap-2">
-        <span
-          className="h-8 w-8 shrink-0 rounded border border-neutral-700"
-          style={{ background: literal }}
-        />
-        <div className="flex flex-col">
-          <span className="font-mono text-xs text-neutral-300">--{token}</span>
-          <span className="text-[11px] text-neutral-500">{theme}</span>
-        </div>
+    <div
+      ref={ref}
+      role="dialog"
+      aria-label={`Edit ${state.token} color`}
+      className="fixed z-40 flex w-[280px] flex-col gap-3 rounded-md border border-neutral-700 bg-neutral-900 p-3 shadow-2xl"
+      style={{ top, left }}
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] uppercase tracking-wide text-neutral-500">Color picker</span>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-[11px] text-neutral-500 hover:text-neutral-200"
+        >
+          close
+        </button>
       </div>
-
-      {oklch ? (
-        <div className="flex flex-col gap-2">
-          <SliderRow
-            label="L"
-            min={0}
-            max={1}
-            step={0.001}
-            value={oklch.l}
-            hint="lightness"
-            onChange={(l) => writeOklch({ ...oklch, l })}
-          />
-          <SliderRow
-            label="C"
-            min={0}
-            max={0.4}
-            step={0.001}
-            value={oklch.c}
-            hint="chroma"
-            onChange={(c) => writeOklch({ ...oklch, c })}
-          />
-          <SliderRow
-            label="H"
-            min={0}
-            max={360}
-            step={1}
-            value={oklch.h}
-            hint="hue °"
-            onChange={(h) => writeOklch({ ...oklch, h })}
-          />
-        </div>
-      ) : (
-        <p className="text-[11px] text-neutral-500">
-          Sliders show up for <span className="font-mono">oklch(...)</span> values. The text input
-          below accepts any CSS color.
-        </p>
-      )}
-
-      <input
-        type="text"
-        value={literal}
-        onChange={(e) => writeRaw(e.target.value)}
-        className="w-full rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
-      />
-
-      {value.kind === 'derived' ? (
-        <p className="text-[11px] text-neutral-500">
-          Derived from <span className="font-mono">--{value.from}</span> · editing will switch to a
-          literal.
-        </p>
-      ) : null}
+      <ColorEditor theme={theme} token={state.token} value={value} />
     </div>
   );
 }
@@ -189,18 +117,25 @@ interface ColorPanelProps {
 }
 
 /**
- * Semantic-color editor. Switch theme tab to edit the light or dark map;
- * every grid swatch shows the current value, click one to open an editor
- * that writes back through setTokenColor. For oklch values the editor
- * exposes L/C/H sliders; any value can still be typed directly.
+ * Semantic-color editor.
+ *
+ * Two interactions per swatch:
+ *   - single-click selects the token for the inline editor below the grid
+ *   - double-click opens a floating color picker popover next to the swatch,
+ *     so users don't have to scroll down to the inline editor
  */
 export function ColorPanel({ document }: ColorPanelProps) {
   const [theme, setTheme] = useState<Theme>('light');
   const [selected, setSelected] = useState<SemanticColorToken>('primary');
+  const [popover, setPopover] = useState<PopoverState | null>(null);
   const map = document.tokens.colors[theme];
 
   return (
-    <PanelSection panelId="colors" title="Colors" description="Semantic tokens · click to edit">
+    <PanelSection
+      panelId="colors"
+      title="Colors"
+      description="Semantic tokens · double-click a swatch to pick"
+    >
       <div className="inline-flex gap-1 rounded-md border border-neutral-800 p-1 text-xs">
         {(['light', 'dark'] as const).map((t) => (
           <button
@@ -225,10 +160,21 @@ export function ColorPanel({ document }: ColorPanelProps) {
             value={map[token]}
             selected={selected === token}
             onSelect={() => setSelected(token)}
+            onOpenPopover={(rect) => setPopover({ token, rect })}
           />
         ))}
       </div>
-      <ColorEditor theme={theme} token={selected} value={map[selected]} />
+      <div className="rounded-md border border-neutral-800 bg-neutral-900/50 p-3">
+        <ColorEditor theme={theme} token={selected} value={map[selected]} />
+      </div>
+      {popover ? (
+        <SwatchPopover
+          state={popover}
+          theme={theme}
+          value={map[popover.token]}
+          onClose={() => setPopover(null)}
+        />
+      ) : null}
     </PanelSection>
   );
 }
