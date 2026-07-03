@@ -9,7 +9,7 @@ import {
 } from '../../fixtures/shadcn-app/components/ui/accordion';
 import { Alert, AlertDescription, AlertTitle } from '../../fixtures/shadcn-app/components/ui/alert';
 import { Avatar, AvatarFallback } from '../../fixtures/shadcn-app/components/ui/avatar';
-import { Badge } from '../../fixtures/shadcn-app/components/ui/badge';
+import { Badge as RawBadge } from '../../fixtures/shadcn-app/components/ui/badge';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,7 +18,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '../../fixtures/shadcn-app/components/ui/breadcrumb';
-import { Button } from '../../fixtures/shadcn-app/components/ui/button';
+import { Button as RawButton } from '../../fixtures/shadcn-app/components/ui/button';
 import { Calendar } from '../../fixtures/shadcn-app/components/ui/calendar';
 import {
   Card,
@@ -52,7 +52,14 @@ import {
 import { Textarea } from '../../fixtures/shadcn-app/components/ui/textarea';
 import { Toggle } from '../../fixtures/shadcn-app/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '../../fixtures/shadcn-app/components/ui/toggle-group';
+import { OverrideProvider, withOverride } from './overrides-runtime';
 import { PreviewRoot, type PreviewTheme } from './preview-root';
+
+// Live-preview wrappers: read `document.overrides` at render time and append
+// the delta to the component's className so the shadcn cn() call resolves it
+// via tailwind-merge.
+const Button = withOverride(RawButton, 'button');
+const Badge = withOverride(RawBadge, 'badge');
 import { type ForceState, useForceState } from './use-force-state';
 
 interface ThemeToggleProps {
@@ -520,15 +527,17 @@ export function Canvas({
           forceState={forceState}
           className="min-h-[480px] p-8"
         >
-          <div className="flex flex-col gap-10">
-            <ButtonsShowcase />
-            <BadgesShowcase />
-            <FormControlsShowcase />
-            <NavigationShowcase />
-            <DataDisplayShowcase />
-            <FeedbackShowcase />
-            <CalendarShowcase />
-          </div>
+          <OverrideProvider document={document}>
+            <div className="flex flex-col gap-10">
+              <ButtonsShowcase />
+              <BadgesShowcase />
+              <FormControlsShowcase />
+              <NavigationShowcase />
+              <DataDisplayShowcase />
+              <FeedbackShowcase />
+              <CalendarShowcase />
+            </div>
+          </OverrideProvider>
         </PreviewRoot>
       </div>
     </section>

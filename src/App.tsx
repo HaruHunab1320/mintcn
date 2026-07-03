@@ -171,7 +171,7 @@ export default function App() {
   }, [undo, redo]);
 
   return (
-    <div className="flex h-screen flex-col bg-neutral-950 text-neutral-100">
+    <div className="tincture-chrome flex h-screen flex-col text-neutral-100">
       <header className="flex shrink-0 items-center justify-between gap-4 border-b border-neutral-800 px-6 py-4">
         <div>
           <h1 className="text-lg font-medium tracking-tight">Tincture</h1>

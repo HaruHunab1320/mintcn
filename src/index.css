@@ -48,6 +48,16 @@
   }
 }
 
+/* Subtle dot grid on Tincture's own chrome — panels, toolbars, gutters. The
+   preview canvas (PreviewRoot) paints `bg-background` on top, so shadcn
+   content stays visually distinct as "the thing being edited". */
+.tincture-chrome {
+  background-color: #0a0a0a;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-size: 24px 24px;
+  background-attachment: fixed;
+}
+
 /* Bezier editor preview dot — the CSS timing function is applied inline so
    we can swap the curve without re-parsing. The strip is 200px wide, dot
    is 12px, so we translate by ~188px to hit the far edge. */

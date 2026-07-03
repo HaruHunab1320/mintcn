@@ -6,6 +6,7 @@ Live status:
 - ✅ MVP (M0–M6, presets, export shapes, acceptance script)
 - ✅ Post-MVP wave: palette, ⌘K, shadow editor, undo/redo, easing editor, image→palette, connect-your-own-project
 - ✅ Responsive: device preview toggle + per-breakpoint override tabs
+- ✅ Live override preview (Button + Badge), dot-grid chrome
 - ⏳ Queued: everything else below
 
 ---
@@ -101,6 +102,6 @@ By time-to-delight for a first-time visitor:
 
 ## 4. Deferred / open questions
 
-- **Live preview of overrides** (deferred from M6d) — currently overrides surface only in the diff view. Could inject runtime CSS that mimics the cva rewrite via `[data-slot][data-variant]` selectors. Worth doing before "connect your own project."
+- **Live preview of overrides** — shipped for `Button` + `Badge` via a `withOverride` HOC that appends the delta to `className` and lets shadcn's own `tailwind-merge` resolve conflicts. Two follow-ups: (a) extend the wrapper to Input/Card/Alert/other cva-heavy components; (b) structural rewrites (element type / wrapper changes) still only surface on export — needs a genuinely different mechanism.
 - **Tincture-flavored shadcn registry** (Path B from M6 design) — alongside vanilla shadcn, ship parameterized component versions that consume state tokens for live retroactive propagation. Phase 2 territory; only justified once we have real user demand.
 - **Theme gallery + URL-shareable themes** — once palette + presets are stable, a shared link should rehydrate the document directly. Cheap to build, big distribution upside.
