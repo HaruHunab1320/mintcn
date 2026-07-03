@@ -24,8 +24,8 @@ function NumberRow({ label, hint, min, max, step, value, onChange }: NumberRowPr
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-baseline justify-between font-mono text-[11px]">
-        <span className="text-neutral-400">{label}</span>
-        <span className="text-neutral-500">{hint}</span>
+        <span className="text-muted-foreground">{label}</span>
+        <span className="text-muted-foreground">{hint}</span>
       </div>
       <div className="flex items-center gap-2">
         <input
@@ -36,7 +36,7 @@ function NumberRow({ label, hint, min, max, step, value, onChange }: NumberRowPr
           step={step}
           value={value}
           onChange={(e) => onChange(Number.parseFloat(e.target.value))}
-          className="flex-1 accent-neutral-200"
+          className="flex-1 accent-foreground"
         />
         <input
           type="number"
@@ -49,7 +49,7 @@ function NumberRow({ label, hint, min, max, step, value, onChange }: NumberRowPr
             const n = Number.parseFloat(e.target.value);
             if (Number.isFinite(n)) onChange(n);
           }}
-          className="w-16 rounded border border-neutral-800 bg-neutral-950 px-1.5 py-0.5 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+          className="w-16 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[11px] text-foreground outline-none focus:border-input"
         />
       </div>
     </div>
@@ -114,12 +114,12 @@ export function StatePanel({ document }: StatePanelProps) {
         onChange={(v) => setStateToken('disabledOpacity', v)}
       />
       <label className="flex flex-col gap-1 pt-1">
-        <span className="font-mono text-[11px] text-neutral-400">focus-ring-width</span>
+        <span className="font-mono text-[11px] text-muted-foreground">focus-ring-width</span>
         <input
           type="text"
           value={s.focusRingWidth}
           onChange={(e) => setStateToken('focusRingWidth', e.target.value)}
-          className="rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+          className="rounded border border-border bg-background px-2 py-1 font-mono text-[11px] text-foreground outline-none focus:border-input"
         />
       </label>
     </PanelSection>

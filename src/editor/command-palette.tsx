@@ -76,12 +76,12 @@ export function CommandPalette({ commands, open, onClose }: CommandPaletteProps)
       role="dialog"
       aria-label="Command palette"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-start justify-center bg-neutral-950/70 pt-[15vh] backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-background/70 pt-[15vh] backdrop-blur-sm"
       onClick={onClose}
       onKeyDown={handleKey}
     >
       <div
-        className="flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-neutral-800 bg-neutral-950 text-neutral-100 shadow-2xl"
+        className="flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-border bg-background text-foreground shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
         role="document"
@@ -94,11 +94,11 @@ export function CommandPalette({ commands, open, onClose }: CommandPaletteProps)
           onKeyDown={handleKey}
           placeholder="Search commands…  (↑↓ to navigate, ↵ to invoke, esc to close)"
           aria-label="Search commands"
-          className="border-b border-neutral-800 bg-transparent px-4 py-3 text-sm text-neutral-100 outline-none placeholder:text-neutral-600"
+          className="border-b border-border bg-transparent px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground/70"
         />
         <div className="flex flex-1 flex-col overflow-y-auto py-2">
           {filtered.length === 0 ? (
-            <p className="px-4 py-2 text-xs text-neutral-500">No matching commands.</p>
+            <p className="px-4 py-2 text-xs text-muted-foreground">No matching commands.</p>
           ) : null}
           {GROUP_ORDER.flatMap((group) => {
             const entries = groups.get(group);
@@ -106,7 +106,7 @@ export function CommandPalette({ commands, open, onClose }: CommandPaletteProps)
             return [
               <div
                 key={`heading-${group}`}
-                className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-500"
+                className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
               >
                 {group}
               </div>,
@@ -119,8 +119,8 @@ export function CommandPalette({ commands, open, onClose }: CommandPaletteProps)
                   onClick={() => invoke(entry)}
                   className={`flex w-full items-center justify-between gap-3 px-4 py-1.5 text-left text-sm transition-colors ${
                     flatIndex === active
-                      ? 'bg-neutral-100 text-neutral-900'
-                      : 'text-neutral-100 hover:bg-neutral-900'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-foreground hover:bg-muted'
                   }`}
                 >
                   <span>{entry.label}</span>
@@ -128,8 +128,8 @@ export function CommandPalette({ commands, open, onClose }: CommandPaletteProps)
                     <kbd
                       className={`rounded border px-1.5 text-[10px] ${
                         flatIndex === active
-                          ? 'border-neutral-400 text-neutral-700'
-                          : 'border-neutral-700 text-neutral-400'
+                          ? 'border-primary-foreground/40 text-primary-foreground/70'
+                          : 'border-border text-muted-foreground'
                       }`}
                     >
                       {entry.hint}

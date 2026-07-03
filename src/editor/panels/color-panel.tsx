@@ -31,15 +31,15 @@ function Swatch({ token, value, selected, onSelect, onOpenPopover }: SwatchProps
       title="Double-click to open the color picker"
       className={`group flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-xs transition-colors ${
         selected
-          ? 'border-neutral-100 bg-neutral-100/5'
-          : 'border-neutral-800 hover:border-neutral-700'
+          ? 'border-ring bg-primary/5'
+          : 'border-border hover:border-border'
       }`}
     >
       <span
-        className="h-4 w-4 shrink-0 rounded border border-neutral-700"
+        className="h-4 w-4 shrink-0 rounded border border-border"
         style={{ background: colorValueToCss(value) }}
       />
-      <span className="truncate font-mono text-[11px] text-neutral-300">{token}</span>
+      <span className="truncate font-mono text-[11px] text-foreground/90">{token}</span>
     </button>
   );
 }
@@ -94,15 +94,15 @@ function SwatchPopover({ state, theme, value, onClose }: SwatchPopoverProps) {
       ref={ref}
       role="dialog"
       aria-label={`Edit ${state.token} color`}
-      className="fixed z-40 flex w-[280px] flex-col gap-3 rounded-md border border-neutral-700 bg-neutral-900 p-3 shadow-2xl"
+      className="fixed z-40 flex w-[280px] flex-col gap-3 rounded-md border border-border bg-muted p-3 shadow-2xl"
       style={{ top, left }}
     >
       <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-wide text-neutral-500">Color picker</span>
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Color picker</span>
         <button
           type="button"
           onClick={onClose}
-          className="text-[11px] text-neutral-500 hover:text-neutral-200"
+          className="text-[11px] text-muted-foreground hover:text-foreground"
         >
           close
         </button>
@@ -136,7 +136,7 @@ export function ColorPanel({ document }: ColorPanelProps) {
       title="Colors"
       description="Semantic tokens · double-click a swatch to pick"
     >
-      <div className="inline-flex gap-1 rounded-md border border-neutral-800 p-1 text-xs">
+      <div className="inline-flex gap-1 rounded-md border border-border p-1 text-xs">
         {(['light', 'dark'] as const).map((t) => (
           <button
             key={t}
@@ -144,8 +144,8 @@ export function ColorPanel({ document }: ColorPanelProps) {
             onClick={() => setTheme(t)}
             className={`flex-1 rounded px-2 py-1 transition-colors ${
               theme === t
-                ? 'bg-neutral-100 text-neutral-900'
-                : 'text-neutral-400 hover:text-neutral-100'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {t}
@@ -164,7 +164,7 @@ export function ColorPanel({ document }: ColorPanelProps) {
           />
         ))}
       </div>
-      <div className="rounded-md border border-neutral-800 bg-neutral-900/50 p-3">
+      <div className="rounded-md border border-border bg-muted/50 p-3">
         <ColorEditor theme={theme} token={selected} value={map[selected]} />
       </div>
       {popover ? (

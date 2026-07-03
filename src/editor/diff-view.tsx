@@ -36,12 +36,12 @@ function buildDiffs(files: EmittedFile[]): FileDiff[] {
 
 function classNameForLine(line: string): string {
   if (line.startsWith('+++') || line.startsWith('---') || line.startsWith('diff ')) {
-    return 'text-neutral-500';
+    return 'text-muted-foreground';
   }
-  if (line.startsWith('@@')) return 'bg-neutral-800/40 text-blue-300';
+  if (line.startsWith('@@')) return 'bg-muted/40 text-blue-300';
   if (line.startsWith('+')) return 'bg-green-950/40 text-green-300';
   if (line.startsWith('-')) return 'bg-red-950/40 text-red-300';
-  return 'text-neutral-400';
+  return 'text-muted-foreground';
 }
 
 interface FileCardProps {
@@ -57,14 +57,14 @@ function FileCard({ diff, expanded, onToggle }: FileCardProps) {
     await navigator.clipboard.writeText(patch || file.emitted);
   };
   return (
-    <article className="overflow-hidden rounded-md border border-neutral-800 bg-neutral-950/40">
+    <article className="overflow-hidden rounded-md border border-border bg-card/40">
       <header className="flex items-center justify-between gap-3 px-3 py-2">
         <button
           type="button"
           onClick={onToggle}
-          className="flex flex-1 items-center gap-2 text-left font-mono text-xs text-neutral-200"
+          className="flex flex-1 items-center gap-2 text-left font-mono text-xs text-foreground"
         >
-          <span className="text-neutral-500">{expanded ? '▾' : '▸'}</span>
+          <span className="text-muted-foreground">{expanded ? '▾' : '▸'}</span>
           <span>{file.path}</span>
           {file.isNew ? (
             <span className="rounded bg-blue-950/60 px-1.5 py-0.5 text-[10px] text-blue-300">
@@ -74,19 +74,19 @@ function FileCard({ diff, expanded, onToggle }: FileCardProps) {
         </button>
         <span className="font-mono text-[11px]">
           <span className="text-green-400">+{added}</span>
-          <span className="text-neutral-600"> · </span>
+          <span className="text-muted-foreground/70"> · </span>
           <span className="text-red-400">−{removed}</span>
         </span>
         <button
           type="button"
           onClick={copy}
-          className="rounded border border-neutral-700 px-2 py-0.5 text-[10px] text-neutral-300 hover:border-neutral-500"
+          className="rounded border border-border px-2 py-0.5 text-[10px] text-foreground/90 hover:border-ring"
         >
           copy
         </button>
       </header>
       {expanded ? (
-        <pre className="max-h-[60vh] overflow-auto border-t border-neutral-800 bg-neutral-950 px-3 py-2 font-mono text-[11px] leading-snug">
+        <pre className="max-h-[60vh] overflow-auto border-t border-border bg-background px-3 py-2 font-mono text-[11px] leading-snug">
           {file.isNew && !patch
             ? file.emitted.split('\n').map((line, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: line ordering is stable for this render
@@ -131,7 +131,7 @@ export function DiffView({ files, onClose }: DiffViewProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-stretch justify-center bg-neutral-950/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-stretch justify-center bg-background/80 backdrop-blur-sm"
       onClick={onClose}
       onKeyDown={(e) => {
         if (e.key === 'Escape') onClose();
@@ -142,15 +142,15 @@ export function DiffView({ files, onClose }: DiffViewProps) {
       tabIndex={-1}
     >
       <div
-        className="m-6 flex h-[calc(100vh-3rem)] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-neutral-800 bg-neutral-950 text-neutral-100"
+        className="m-6 flex h-[calc(100vh-3rem)] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-border bg-background text-foreground"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
         role="document"
       >
-        <header className="flex items-center justify-between border-b border-neutral-800 px-4 py-3">
+        <header className="flex items-center justify-between border-b border-border px-4 py-3">
           <div>
             <h2 className="text-sm font-medium tracking-tight">Diff</h2>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-muted-foreground">
               {diffs.length === 0
                 ? 'No edits — everything matches the source.'
                 : `${diffs.length} file${diffs.length === 1 ? '' : 's'} differ from source.`}
@@ -159,14 +159,14 @@ export function DiffView({ files, onClose }: DiffViewProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded border border-neutral-700 px-3 py-1 text-xs text-neutral-200 hover:border-neutral-500"
+            className="rounded border border-border px-3 py-1 text-xs text-foreground hover:border-ring"
           >
             close
           </button>
         </header>
         <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
           {diffs.length === 0 ? (
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-muted-foreground">
               Edit a token or override to see changes appear here.
             </p>
           ) : null}

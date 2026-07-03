@@ -26,20 +26,20 @@ function StopEditor({ keyframeName, stopIndex, stop, onRemove }: StopEditorProps
   const [newProp, setNewProp] = useState('');
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-neutral-800 bg-neutral-950/40 p-2">
+    <div className="flex flex-col gap-2 rounded-md border border-border bg-card/40 p-2">
       <div className="flex items-center gap-2">
         <input
           type="text"
           aria-label={`stop ${stopIndex} key`}
           value={stop.key}
           onChange={(e) => updateKey(e.target.value)}
-          className="w-20 rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+          className="w-20 rounded border border-border bg-background px-2 py-1 font-mono text-[11px] text-foreground outline-none focus:border-input"
         />
-        <span className="text-[11px] text-neutral-500">{'{'}</span>
+        <span className="text-[11px] text-muted-foreground">{'{'}</span>
         <button
           type="button"
           onClick={onRemove}
-          className="ml-auto text-[10px] text-neutral-500 hover:text-red-400"
+          className="ml-auto text-[10px] text-muted-foreground hover:text-red-400"
         >
           delete stop
         </button>
@@ -47,18 +47,18 @@ function StopEditor({ keyframeName, stopIndex, stop, onRemove }: StopEditorProps
       <div className="flex flex-col gap-1 pl-3">
         {Object.entries(stop.declarations).map(([prop, value]) => (
           <div key={prop} className="flex items-center gap-1">
-            <span className="w-32 truncate font-mono text-[11px] text-neutral-400">{prop}:</span>
+            <span className="w-32 truncate font-mono text-[11px] text-muted-foreground">{prop}:</span>
             <input
               type="text"
               aria-label={`stop ${stopIndex} ${prop}`}
               value={value}
               onChange={(e) => updateDeclaration(prop, e.target.value)}
-              className="flex-1 rounded border border-neutral-800 bg-neutral-950 px-1.5 py-0.5 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+              className="flex-1 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[11px] text-foreground outline-none focus:border-input"
             />
             <button
               type="button"
               onClick={() => removeDeclaration(prop)}
-              className="text-[10px] text-neutral-600 hover:text-red-400"
+              className="text-[10px] text-muted-foreground/70 hover:text-red-400"
             >
               ×
             </button>
@@ -70,7 +70,7 @@ function StopEditor({ keyframeName, stopIndex, stop, onRemove }: StopEditorProps
             placeholder="new property"
             value={newProp}
             onChange={(e) => setNewProp(e.target.value)}
-            className="flex-1 rounded border border-neutral-800 bg-neutral-950 px-1.5 py-0.5 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+            className="flex-1 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[11px] text-foreground outline-none focus:border-input"
           />
           <button
             type="button"
@@ -81,13 +81,13 @@ function StopEditor({ keyframeName, stopIndex, stop, onRemove }: StopEditorProps
               updateDeclaration(key, '');
               setNewProp('');
             }}
-            className="rounded border border-neutral-700 px-1.5 py-0.5 text-[10px] text-neutral-400 enabled:hover:border-neutral-500 disabled:opacity-40"
+            className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground enabled:hover:border-ring disabled:opacity-40"
           >
             +
           </button>
         </div>
       </div>
-      <span className="pl-1 text-[11px] text-neutral-500">{'}'}</span>
+      <span className="pl-1 text-[11px] text-muted-foreground">{'}'}</span>
     </div>
   );
 }
@@ -104,21 +104,21 @@ function KeyframeEditor({ name, definition }: KeyframeEditorProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-neutral-800 bg-neutral-900/40">
+    <div className="flex flex-col gap-2 rounded-md border border-border bg-muted/40">
       <div className="flex items-center justify-between px-2 py-1.5">
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-1 text-left font-mono text-[11px] text-neutral-200"
+          className="flex items-center gap-1 text-left font-mono text-[11px] text-foreground"
         >
-          <span className="text-neutral-500">{expanded ? '▾' : '▸'}</span>
+          <span className="text-muted-foreground">{expanded ? '▾' : '▸'}</span>
           @keyframes {name}
-          <span className="text-neutral-500"> · {definition.stops.length} stops</span>
+          <span className="text-muted-foreground"> · {definition.stops.length} stops</span>
         </button>
         <button
           type="button"
           onClick={() => removeKeyframe(name)}
-          className="text-[10px] text-neutral-500 hover:text-red-400"
+          className="text-[10px] text-muted-foreground hover:text-red-400"
         >
           remove
         </button>
@@ -143,7 +143,7 @@ function KeyframeEditor({ name, definition }: KeyframeEditorProps) {
                 declarations: {},
               })
             }
-            className="self-start rounded border border-neutral-700 px-2 py-1 text-[10px] text-neutral-300 hover:border-neutral-500"
+            className="self-start rounded border border-border px-2 py-1 text-[10px] text-foreground/90 hover:border-ring"
           >
             + add stop
           </button>
@@ -170,18 +170,18 @@ export function KeyframePanel({ document }: KeyframePanelProps) {
       description="@keyframes blocks · click to expand & edit"
     >
       {names.length === 0 ? (
-        <p className="text-[11px] text-neutral-500">No keyframes defined.</p>
+        <p className="text-[11px] text-muted-foreground">No keyframes defined.</p>
       ) : null}
       {names.map((name) => (
         <KeyframeEditor key={name} name={name} definition={keyframes[name]} />
       ))}
-      <div className="flex items-center gap-2 border-t border-neutral-800 pt-2">
+      <div className="flex items-center gap-2 border-t border-border pt-2">
         <input
           type="text"
           placeholder="new keyframe (e.g. spin)"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          className="flex-1 rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+          className="flex-1 rounded border border-border bg-background px-2 py-1 font-mono text-[11px] text-foreground outline-none focus:border-input"
         />
         <button
           type="button"
@@ -197,7 +197,7 @@ export function KeyframePanel({ document }: KeyframePanelProps) {
             });
             setNewName('');
           }}
-          className="rounded border border-neutral-700 px-2 py-1 text-[11px] text-neutral-300 enabled:hover:border-neutral-500 disabled:opacity-40"
+          className="rounded border border-border px-2 py-1 text-[11px] text-foreground/90 enabled:hover:border-ring disabled:opacity-40"
         >
           add
         </button>

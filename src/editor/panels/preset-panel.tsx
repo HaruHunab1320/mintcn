@@ -28,33 +28,33 @@ export function PresetPanel({ document }: PresetPanelProps) {
   return (
     <PanelSection panelId="presets" title="Presets" description="Save + load full theme snapshots">
       {document.presets.length === 0 ? (
-        <p className="text-[11px] text-neutral-500">No presets yet.</p>
+        <p className="text-[11px] text-muted-foreground">No presets yet.</p>
       ) : null}
       {document.presets.map((preset) => (
         <div
           key={preset.id}
-          className="flex items-center justify-between gap-2 rounded-md border border-neutral-800 bg-neutral-950/40 px-2 py-1.5"
+          className="flex items-center justify-between gap-2 rounded-md border border-border bg-card/40 px-2 py-1.5"
         >
-          <span className="truncate font-mono text-[11px] text-neutral-200">{preset.name}</span>
+          <span className="truncate font-mono text-[11px] text-foreground">{preset.name}</span>
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => loadPreset(preset.id)}
-              className="rounded border border-neutral-700 px-2 py-0.5 text-[10px] text-neutral-200 hover:border-neutral-500"
+              className="rounded border border-border px-2 py-0.5 text-[10px] text-foreground hover:border-ring"
             >
               load
             </button>
             <button
               type="button"
               onClick={() => removePreset(preset.id)}
-              className="text-[10px] text-neutral-500 hover:text-red-400"
+              className="text-[10px] text-muted-foreground hover:text-red-400"
             >
               remove
             </button>
           </div>
         </div>
       ))}
-      <div className="flex items-center gap-2 border-t border-neutral-800 pt-2">
+      <div className="flex items-center gap-2 border-t border-border pt-2">
         <input
           type="text"
           placeholder="preset name"
@@ -63,13 +63,13 @@ export function PresetPanel({ document }: PresetPanelProps) {
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleSave();
           }}
-          className="flex-1 rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+          className="flex-1 rounded border border-border bg-background px-2 py-1 font-mono text-[11px] text-foreground outline-none focus:border-input"
         />
         <button
           type="button"
           disabled={!newName.trim()}
           onClick={handleSave}
-          className="rounded border border-neutral-700 px-2 py-1 text-[11px] text-neutral-300 enabled:hover:border-neutral-500 disabled:opacity-40"
+          className="rounded border border-border px-2 py-1 text-[11px] text-foreground/90 enabled:hover:border-ring disabled:opacity-40"
         >
           save
         </button>

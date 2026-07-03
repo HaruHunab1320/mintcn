@@ -16,7 +16,7 @@ import {
   selectFilesForShape,
 } from '@/editor';
 import { generatePalette } from '@/palette';
-import { Canvas, type ForceState, type PreviewTheme } from '@/renderer';
+import { Canvas, type ForceState, type PreviewTheme, tokensToCssVars } from '@/renderer';
 import { useProjectStore } from '@/store/project-store';
 
 const FORCE_STATE_CYCLE: ForceState[] = ['off', 'hover', 'focus-visible', 'active', 'disabled'];
@@ -59,6 +59,13 @@ export default function App() {
     if (!document) return [];
     return emitProject({ document, originals });
   }, [document, originals]);
+  // Hoist the shadcn tokens onto the app root so `bg-background`,
+  // `border-border`, `text-foreground` etc. work in the chrome — the whole
+  // app becomes a live preview of the current theme.
+  const rootStyle = useMemo(
+    () => (document ? tokensToCssVars(document, theme) : undefined),
+    [document, theme],
+  );
   const changed = useMemo(() => changedFiles(emitted), [emitted]);
 
   const archiveName = document
@@ -171,11 +178,16 @@ export default function App() {
   }, [undo, redo]);
 
   return (
-    <div className="tincture-chrome flex h-screen flex-col text-neutral-100">
-      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-neutral-800 px-6 py-4">
+    <div
+      style={rootStyle}
+      className={`tincture-chrome flex h-screen flex-col bg-background text-foreground ${
+        theme === 'dark' ? 'dark' : ''
+      }`}
+    >
+      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-4">
         <div>
           <h1 className="text-lg font-medium tracking-tight">Tincture</h1>
-          <p className="text-sm text-neutral-400">
+          <p className="text-sm text-muted-foreground">
             {document
               ? `${document.meta.name} · ${document.meta.baseColor} · ${document.components.length} components`
               : 'Loading fixture…'}
@@ -186,28 +198,28 @@ export default function App() {
             <button
               type="button"
               onClick={() => setConnectOpen(true)}
-              className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-3 py-1.5 text-xs text-neutral-200 hover:border-neutral-500"
+              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs text-foreground hover:border-ring"
             >
               ⇱ Connect
             </button>
             <button
               type="button"
               onClick={() => setPaletteOpen(true)}
-              className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-3 py-1.5 text-xs text-neutral-200 hover:border-neutral-500"
+              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs text-foreground hover:border-ring"
             >
               <span>Search</span>
-              <kbd className="rounded border border-neutral-700 px-1 text-[10px] text-neutral-400">
+              <kbd className="rounded border border-border px-1 text-[10px] text-muted-foreground">
                 ⌘K
               </kbd>
             </button>
-            <div className="inline-flex overflow-hidden rounded-md border border-neutral-700">
+            <div className="inline-flex overflow-hidden rounded-md border border-border">
               <button
                 type="button"
                 onClick={undo}
                 disabled={!canUndo}
                 aria-label="Undo"
                 title="Undo (⌘Z)"
-                className="border-r border-neutral-700 px-2 py-1.5 text-xs text-neutral-200 enabled:hover:bg-neutral-900 disabled:opacity-40"
+                className="border-r border-border px-2 py-1.5 text-xs text-foreground enabled:hover:bg-muted disabled:opacity-40"
               >
                 ↶
               </button>
@@ -217,7 +229,7 @@ export default function App() {
                 disabled={!canRedo}
                 aria-label="Redo"
                 title="Redo (⌘⇧Z)"
-                className="px-2 py-1.5 text-xs text-neutral-200 enabled:hover:bg-neutral-900 disabled:opacity-40"
+                className="px-2 py-1.5 text-xs text-foreground enabled:hover:bg-muted disabled:opacity-40"
               >
                 ↷
               </button>
@@ -225,11 +237,11 @@ export default function App() {
             <button
               type="button"
               onClick={() => setShowDiff(true)}
-              className="inline-flex items-center gap-2 rounded-md border border-neutral-700 px-3 py-1.5 text-xs text-neutral-200 hover:border-neutral-500"
+              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs text-foreground hover:border-ring"
             >
               <span>Diff</span>
               {changed.length > 0 ? (
-                <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-900">
+                <span className="rounded bg-primary px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground">
                   {changed.length}
                 </span>
               ) : null}
@@ -250,12 +262,12 @@ export default function App() {
               onForceStateChange={setForceState}
             />
           </main>
-          <div className="flex h-full shrink-0 border-l border-neutral-800">
+          <div className="flex h-full shrink-0 border-l border-border">
             <PropertyPanel document={document} />
           </div>
         </div>
       ) : (
-        <main className="p-6 text-sm text-neutral-500">Loading…</main>
+        <main className="p-6 text-sm text-muted-foreground">Loading…</main>
       )}
       {showDiff ? <DiffView files={emitted} onClose={() => setShowDiff(false)} /> : null}
       <ConnectProject

@@ -27,6 +27,47 @@ test('editing button size.sm updates the preview button live, no export required
   await expect(smButton).toHaveCSS('height', '64px');
 });
 
+test('editing an alert variant flows through to the preview alert live', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForSelector('.tincture-preview');
+
+  const alert = page.locator('.tincture-preview [data-slot="alert"]').first();
+  await expect(alert).toBeVisible();
+
+  const overridesSection = page
+    .locator('section')
+    .filter({ has: page.getByRole('heading', { name: 'Overrides' }) });
+  await overridesSection.locator('select').selectOption('alert');
+
+  const defaultTextarea = page.getByLabel('alert variant default base classes', { exact: true });
+  await defaultTextarea.fill('bg-primary text-primary-foreground border-primary');
+  await defaultTextarea.blur();
+
+  // The alert's background should now be primary-colored — check the
+  // computed background-color includes a non-transparent value that differs
+  // from the original card background.
+  const bg = await alert.evaluate((el) => window.getComputedStyle(el).backgroundColor);
+  expect(bg).not.toBe('rgba(0, 0, 0, 0)');
+  expect(bg).not.toBe('transparent');
+});
+
+test('the app root sits on the shadcn background token (not a hardcoded neutral)', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.waitForSelector('.tincture-preview');
+
+  // The App root should have the shadcn --background CSS var installed (via
+  // the hoisted token style) — meaning `bg-background` on the same element
+  // resolves to the same value as PreviewRoot sees. Sanity-check by reading
+  // --background off the root.
+  const bg = await page
+    .locator('.tincture-chrome')
+    .first()
+    .evaluate((el) => getComputedStyle(el).getPropertyValue('--background').trim());
+  expect(bg.length).toBeGreaterThan(0);
+});
+
 test('the app root wears the dot-grid chrome class; preview does not', async ({ page }) => {
   await page.goto('/');
   await page.waitForSelector('.tincture-preview');

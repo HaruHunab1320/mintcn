@@ -26,7 +26,7 @@ export function ComponentPanel({ document }: ComponentPanelProps) {
       <select
         value={selectedId}
         onChange={(e) => setSelectedId(e.target.value)}
-        className="rounded border border-neutral-800 bg-neutral-950 px-2 py-1 text-xs text-neutral-100 outline-none focus:border-neutral-600"
+        className="rounded border border-border bg-background px-2 py-1 text-xs text-foreground outline-none focus:border-input"
       >
         {document.components.map((c) => (
           <option key={c.id} value={c.id}>
@@ -36,23 +36,23 @@ export function ComponentPanel({ document }: ComponentPanelProps) {
       </select>
 
       {selected ? (
-        <div className="flex flex-col gap-3 text-[11px] text-neutral-400">
+        <div className="flex flex-col gap-3 text-[11px] text-muted-foreground">
           <div>
-            <p className="text-neutral-500">source</p>
-            <p className="font-mono text-neutral-300">{selected.source.path}</p>
+            <p className="text-muted-foreground">source</p>
+            <p className="font-mono text-foreground/90">{selected.source.path}</p>
           </div>
 
           {selected.variants.length > 0 ? (
             <div>
-              <p className="text-neutral-500">variants</p>
+              <p className="text-muted-foreground">variants</p>
               <div className="flex flex-col gap-1 pt-1">
                 {selected.variants.map((axis) => (
                   <div
                     key={axis.name}
-                    className="rounded border border-neutral-800 bg-neutral-950/60 px-2 py-1.5"
+                    className="rounded border border-border bg-card/60 px-2 py-1.5"
                   >
-                    <p className="font-mono text-neutral-300">{axis.name}</p>
-                    <p className="text-neutral-500">
+                    <p className="font-mono text-foreground/90">{axis.name}</p>
+                    <p className="text-muted-foreground">
                       {axis.options
                         .map((opt) => (opt === axis.default ? `[${opt}]` : opt))
                         .join(' · ')}
@@ -62,13 +62,13 @@ export function ComponentPanel({ document }: ComponentPanelProps) {
               </div>
             </div>
           ) : (
-            <p className="text-neutral-500">No cva variants.</p>
+            <p className="text-muted-foreground">No cva variants.</p>
           )}
 
           {selected.slots.length > 0 ? (
             <div>
-              <p className="text-neutral-500">slots</p>
-              <p className="font-mono text-neutral-300">
+              <p className="text-muted-foreground">slots</p>
+              <p className="font-mono text-foreground/90">
                 {selected.slots.map((s) => s.name).join(', ')}
               </p>
             </div>
@@ -76,8 +76,8 @@ export function ComponentPanel({ document }: ComponentPanelProps) {
 
           {selected.consumes.cssVars.length > 0 ? (
             <div>
-              <p className="text-neutral-500">consumes</p>
-              <p className="font-mono text-neutral-300 break-all">
+              <p className="text-muted-foreground">consumes</p>
+              <p className="font-mono text-foreground/90 break-all">
                 {selected.consumes.cssVars.join(' · ')}
               </p>
             </div>

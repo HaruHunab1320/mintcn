@@ -22,8 +22,8 @@ function SliderRow({ label, min, max, step, value, hint, onChange }: SliderRowPr
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-baseline justify-between font-mono text-[11px]">
-        <span className="text-neutral-400">{label}</span>
-        <span className="text-neutral-500">{hint}</span>
+        <span className="text-muted-foreground">{label}</span>
+        <span className="text-muted-foreground">{hint}</span>
       </div>
       <div className="flex items-center gap-2">
         <input
@@ -34,7 +34,7 @@ function SliderRow({ label, min, max, step, value, hint, onChange }: SliderRowPr
           step={step}
           value={value}
           onChange={(e) => onChange(Number.parseFloat(e.target.value))}
-          className="flex-1 accent-neutral-200"
+          className="flex-1 accent-foreground"
         />
         <input
           type="number"
@@ -47,7 +47,7 @@ function SliderRow({ label, min, max, step, value, hint, onChange }: SliderRowPr
             const n = Number.parseFloat(e.target.value);
             if (Number.isFinite(n)) onChange(n);
           }}
-          className="w-16 rounded border border-neutral-800 bg-neutral-950 px-1.5 py-0.5 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+          className="w-16 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[11px] text-foreground outline-none focus:border-input"
         />
       </div>
     </div>
@@ -95,12 +95,12 @@ export function ColorEditor({ theme, token, value }: ColorEditorProps) {
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <span
-          className="h-8 w-8 shrink-0 rounded border border-neutral-700"
+          className="h-8 w-8 shrink-0 rounded border border-border"
           style={{ background: literal }}
         />
         <div className="flex flex-col">
-          <span className="font-mono text-xs text-neutral-300">--{token}</span>
-          <span className="text-[11px] text-neutral-500">{theme}</span>
+          <span className="font-mono text-xs text-foreground/90">--{token}</span>
+          <span className="text-[11px] text-muted-foreground">{theme}</span>
         </div>
       </div>
 
@@ -135,7 +135,7 @@ export function ColorEditor({ theme, token, value }: ColorEditorProps) {
           />
         </div>
       ) : (
-        <p className="text-[11px] text-neutral-500">
+        <p className="text-[11px] text-muted-foreground">
           Sliders show up for <span className="font-mono">oklch(...)</span> values. The text input
           below accepts any CSS color.
         </p>
@@ -146,11 +146,11 @@ export function ColorEditor({ theme, token, value }: ColorEditorProps) {
         aria-label={`${token} value`}
         value={literal}
         onChange={(e) => writeRaw(e.target.value)}
-        className="w-full rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+        className="w-full rounded border border-border bg-background px-2 py-1 font-mono text-[11px] text-foreground outline-none focus:border-input"
       />
 
       {value.kind === 'derived' ? (
-        <p className="text-[11px] text-neutral-500">
+        <p className="text-[11px] text-muted-foreground">
           Derived from <span className="font-mono">--{value.from}</span> · editing will switch to a
           literal.
         </p>

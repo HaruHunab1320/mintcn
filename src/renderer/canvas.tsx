@@ -7,7 +7,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '../../fixtures/shadcn-app/components/ui/accordion';
-import { Alert, AlertDescription, AlertTitle } from '../../fixtures/shadcn-app/components/ui/alert';
+import {
+  Alert as RawAlert,
+  AlertDescription,
+  AlertTitle,
+} from '../../fixtures/shadcn-app/components/ui/alert';
 import { Avatar, AvatarFallback } from '../../fixtures/shadcn-app/components/ui/avatar';
 import { Badge as RawBadge } from '../../fixtures/shadcn-app/components/ui/badge';
 import {
@@ -21,14 +25,14 @@ import {
 import { Button as RawButton } from '../../fixtures/shadcn-app/components/ui/button';
 import { Calendar } from '../../fixtures/shadcn-app/components/ui/calendar';
 import {
-  Card,
+  Card as RawCard,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '../../fixtures/shadcn-app/components/ui/card';
 import { Checkbox } from '../../fixtures/shadcn-app/components/ui/checkbox';
-import { Input } from '../../fixtures/shadcn-app/components/ui/input';
+import { Input as RawInput } from '../../fixtures/shadcn-app/components/ui/input';
 import { Label } from '../../fixtures/shadcn-app/components/ui/label';
 import { Progress } from '../../fixtures/shadcn-app/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '../../fixtures/shadcn-app/components/ui/radio-group';
@@ -50,16 +54,22 @@ import {
   TabsTrigger,
 } from '../../fixtures/shadcn-app/components/ui/tabs';
 import { Textarea } from '../../fixtures/shadcn-app/components/ui/textarea';
-import { Toggle } from '../../fixtures/shadcn-app/components/ui/toggle';
+import { Toggle as RawToggle } from '../../fixtures/shadcn-app/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '../../fixtures/shadcn-app/components/ui/toggle-group';
 import { OverrideProvider, withOverride } from './overrides-runtime';
 import { PreviewRoot, type PreviewTheme } from './preview-root';
 
 // Live-preview wrappers: read `document.overrides` at render time and append
 // the delta to the component's className so the shadcn cn() call resolves it
-// via tailwind-merge.
+// via tailwind-merge. Input/Card don't have cva variants in shadcn v4, so
+// wrapping is a no-op today — kept in place so scopedVar/addUtilities edits
+// in the override editor will live-preview automatically when we add them.
 const Button = withOverride(RawButton, 'button');
 const Badge = withOverride(RawBadge, 'badge');
+const Alert = withOverride(RawAlert, 'alert');
+const Input = withOverride(RawInput, 'input');
+const Card = withOverride(RawCard, 'card');
+const Toggle = withOverride(RawToggle, 'toggle');
 import { type ForceState, useForceState } from './use-force-state';
 
 interface ThemeToggleProps {
@@ -69,7 +79,7 @@ interface ThemeToggleProps {
 
 function ThemeToggle({ theme, onChange }: ThemeToggleProps) {
   return (
-    <div className="inline-flex items-center gap-1 rounded-md border border-neutral-800 p-1 text-xs">
+    <div className="inline-flex items-center gap-1 rounded-md border border-border p-1 text-xs">
       {(['light', 'dark'] as const).map((t) => (
         <button
           key={t}
@@ -77,8 +87,8 @@ function ThemeToggle({ theme, onChange }: ThemeToggleProps) {
           onClick={() => onChange(t)}
           className={`rounded px-2 py-1 transition-colors ${
             theme === t
-              ? 'bg-neutral-100 text-neutral-900'
-              : 'text-neutral-400 hover:text-neutral-100'
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           {t}
@@ -120,10 +130,10 @@ function DeviceToggle({ value, onChange }: DeviceToggleProps) {
   const options: DevicePreset[] = ['auto', 'mobile', 'tablet', 'desktop'];
   return (
     <div
-      className="inline-flex items-center gap-1 rounded-md border border-neutral-800 p-1 text-xs"
+      className="inline-flex items-center gap-1 rounded-md border border-border p-1 text-xs"
       title="Tailwind's sm:/md:/lg: utilities respond to the browser viewport, not the canvas width — resize your window to test full responsive behavior."
     >
-      <span className="px-1.5 text-[10px] uppercase tracking-wide text-neutral-500">width</span>
+      <span className="px-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">width</span>
       {options.map((s) => (
         <button
           key={s}
@@ -131,8 +141,8 @@ function DeviceToggle({ value, onChange }: DeviceToggleProps) {
           onClick={() => onChange(s)}
           className={`rounded px-2 py-1 transition-colors ${
             value === s
-              ? 'bg-neutral-100 text-neutral-900'
-              : 'text-neutral-400 hover:text-neutral-100'
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           {DEVICE_LABELS[s]}
@@ -150,8 +160,8 @@ interface ForceStateToggleProps {
 function ForceStateToggle({ value, onChange }: ForceStateToggleProps) {
   const options: ForceState[] = ['off', 'hover', 'focus-visible', 'active', 'disabled'];
   return (
-    <div className="inline-flex items-center gap-1 rounded-md border border-neutral-800 p-1 text-xs">
-      <span className="px-1.5 text-[10px] uppercase tracking-wide text-neutral-500">force</span>
+    <div className="inline-flex items-center gap-1 rounded-md border border-border p-1 text-xs">
+      <span className="px-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">force</span>
       {options.map((s) => (
         <button
           key={s}
@@ -159,8 +169,8 @@ function ForceStateToggle({ value, onChange }: ForceStateToggleProps) {
           onClick={() => onChange(s)}
           className={`rounded px-2 py-1 transition-colors ${
             value === s
-              ? 'bg-neutral-100 text-neutral-900'
-              : 'text-neutral-400 hover:text-neutral-100'
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           {FORCE_STATE_LABELS[s]}
@@ -505,7 +515,7 @@ export function Canvas({
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-medium text-neutral-200">Preview</h2>
+        <h2 className="text-sm font-medium text-foreground">Preview</h2>
         <div className="flex flex-wrap items-center gap-2">
           <DeviceToggle value={device} onChange={setDevice} />
           <ForceStateToggle value={forceState} onChange={setForceState} />
@@ -516,7 +526,7 @@ export function Canvas({
       <div
         aria-label="Preview viewport"
         data-device-preset={device}
-        className={`overflow-auto min-w-[320px] max-w-full rounded-lg border border-neutral-800 transition-all ${
+        className={`overflow-auto min-w-[320px] max-w-full rounded-lg border border-border transition-all ${
           device === 'auto' ? 'resize-x' : ''
         }`}
         style={viewportStyle}

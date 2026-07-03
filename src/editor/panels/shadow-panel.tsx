@@ -37,7 +37,7 @@ function LayerEditor({ shadowName, layers, layerIndex, onChange }: LayerEditorPr
     const display = raw.replace(/[a-z%]+$/i, '');
     return (
       <label className="flex flex-col gap-0.5">
-        <span className="text-[10px] uppercase tracking-wide text-neutral-500">{label}</span>
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>
         <input
           type="number"
           step={1}
@@ -47,7 +47,7 @@ function LayerEditor({ shadowName, layers, layerIndex, onChange }: LayerEditorPr
             const v = e.target.value;
             updateLayer({ [key]: v === '' ? '0' : v === '0' ? '0' : `${v}px` });
           }}
-          className="w-full rounded border border-neutral-800 bg-neutral-950 px-1.5 py-0.5 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+          className="w-full rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[11px] text-foreground outline-none focus:border-input"
         />
       </label>
     );
@@ -56,31 +56,31 @@ function LayerEditor({ shadowName, layers, layerIndex, onChange }: LayerEditorPr
   return (
     <fieldset
       aria-label={`shadow ${shadowName} layer ${layerIndex + 1}`}
-      className="flex flex-col gap-2 rounded-md border border-neutral-800 bg-neutral-950/40 p-2 min-w-0"
+      className="flex flex-col gap-2 rounded-md border border-border bg-card/40 p-2 min-w-0"
     >
-      <div className="flex items-center justify-between text-[10px] text-neutral-500">
+      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
         <span className="font-mono">layer {layerIndex + 1}</span>
         <div className="flex items-center gap-2">
-          <label className="flex items-center gap-1 text-neutral-400">
+          <label className="flex items-center gap-1 text-muted-foreground">
             <input
               type="checkbox"
               checked={layer.inset}
               onChange={(e) => updateLayer({ inset: e.target.checked })}
-              className="accent-neutral-200"
+              className="accent-foreground"
             />
             inset
           </label>
           <button
             type="button"
             onClick={duplicateLayer}
-            className="text-neutral-500 hover:text-neutral-200"
+            className="text-muted-foreground hover:text-foreground"
           >
             duplicate
           </button>
           <button
             type="button"
             onClick={removeLayer}
-            className="text-neutral-500 hover:text-red-400"
+            className="text-muted-foreground hover:text-red-400"
           >
             remove
           </button>
@@ -93,13 +93,13 @@ function LayerEditor({ shadowName, layers, layerIndex, onChange }: LayerEditorPr
         {numericField('spread', 'Spread')}
       </div>
       <label className="flex flex-col gap-0.5">
-        <span className="text-[10px] uppercase tracking-wide text-neutral-500">Color</span>
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Color</span>
         <input
           type="text"
           aria-label={`${shadowName} layer ${layerIndex} color`}
           value={layer.color}
           onChange={(e) => updateLayer({ color: e.target.value })}
-          className="rounded border border-neutral-800 bg-neutral-950 px-1.5 py-0.5 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+          className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[11px] text-foreground outline-none focus:border-input"
         />
       </label>
     </fieldset>
@@ -122,14 +122,14 @@ function ShadowEditor({ name, value, onChange, onRemove }: ShadowEditorProps) {
   return (
     <fieldset
       aria-label={`shadow ${name}`}
-      className="flex flex-col gap-2 rounded-md border border-neutral-800 bg-neutral-900/40 p-2 min-w-0"
+      className="flex flex-col gap-2 rounded-md border border-border bg-muted/40 p-2 min-w-0"
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-[11px] text-neutral-300">--shadow-{name}</span>
+        <span className="font-mono text-[11px] text-foreground/90">--shadow-{name}</span>
         <button
           type="button"
           onClick={onRemove}
-          className="text-[10px] text-neutral-500 hover:text-red-400"
+          className="text-[10px] text-muted-foreground hover:text-red-400"
         >
           remove
         </button>
@@ -141,7 +141,7 @@ function ShadowEditor({ name, value, onChange, onRemove }: ShadowEditorProps) {
         <span className="text-[10px] font-medium text-neutral-700">Aa</span>
       </div>
       {layers.length === 0 ? (
-        <p className="text-[11px] text-neutral-500">Empty shadow — add a layer below.</p>
+        <p className="text-[11px] text-muted-foreground">Empty shadow — add a layer below.</p>
       ) : null}
       {layers.map((_, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: shadow layers have no stable id
@@ -150,7 +150,7 @@ function ShadowEditor({ name, value, onChange, onRemove }: ShadowEditorProps) {
       <button
         type="button"
         onClick={() => apply([...layers, { ...DEFAULT_LAYER }])}
-        className="self-start rounded border border-neutral-700 px-2 py-1 text-[10px] text-neutral-300 hover:border-neutral-500"
+        className="self-start rounded border border-border px-2 py-1 text-[10px] text-foreground/90 hover:border-ring"
       >
         + add layer
       </button>
@@ -173,7 +173,7 @@ export function ShadowPanel({ document }: ShadowPanelProps) {
       description="--shadow-* tokens · per-layer editor"
     >
       {names.length === 0 ? (
-        <p className="text-xs text-neutral-500">No shadow tokens defined.</p>
+        <p className="text-xs text-muted-foreground">No shadow tokens defined.</p>
       ) : null}
       {names.map((name) => (
         <ShadowEditor
@@ -184,13 +184,13 @@ export function ShadowPanel({ document }: ShadowPanelProps) {
           onRemove={() => removeShadow(name)}
         />
       ))}
-      <div className="flex items-center gap-2 border-t border-neutral-800 pt-2">
+      <div className="flex items-center gap-2 border-t border-border pt-2">
         <input
           type="text"
           placeholder="new shadow name (e.g. xl)"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          className="flex-1 rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+          className="flex-1 rounded border border-border bg-background px-2 py-1 font-mono text-[11px] text-foreground outline-none focus:border-input"
         />
         <button
           type="button"
@@ -201,7 +201,7 @@ export function ShadowPanel({ document }: ShadowPanelProps) {
             setShadow(key, '0 1px 2px 0 rgb(0 0 0 / 0.05)');
             setNewName('');
           }}
-          className="rounded border border-neutral-700 px-2 py-1 text-[11px] text-neutral-300 enabled:hover:border-neutral-500 disabled:opacity-40"
+          className="rounded border border-border px-2 py-1 text-[11px] text-foreground/90 enabled:hover:border-ring disabled:opacity-40"
         >
           add
         </button>

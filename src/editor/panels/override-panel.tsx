@@ -67,23 +67,23 @@ function VariantOptionEditor({
   };
 
   return (
-    <div className="flex flex-col gap-1.5 rounded-md border border-neutral-800 bg-neutral-950/40 p-2">
+    <div className="flex flex-col gap-1.5 rounded-md border border-border bg-card/40 p-2">
       <div className="flex items-center justify-between text-[11px]">
-        <span className="font-mono text-neutral-200">
+        <span className="font-mono text-foreground">
           {axis}
-          <span className="text-neutral-500"> · </span>
+          <span className="text-muted-foreground"> · </span>
           {option}
         </span>
         {isOverridden ? (
-          <button type="button" onClick={reset} className="text-neutral-500 hover:text-neutral-200">
+          <button type="button" onClick={reset} className="text-muted-foreground hover:text-foreground">
             reset
           </button>
         ) : (
-          <span className="text-neutral-600">original</span>
+          <span className="text-muted-foreground/70">original</span>
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-1 border-b border-neutral-800 pb-1">
+      <div className="flex flex-wrap items-center gap-1 border-b border-border pb-1">
         {BREAKPOINTS.map((bp) => (
           <button
             key={bp}
@@ -91,8 +91,8 @@ function VariantOptionEditor({
             onClick={() => setActiveBreakpoint(bp)}
             className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] transition-colors ${
               bp === activeBreakpoint
-                ? 'bg-neutral-100 text-neutral-900'
-                : 'text-neutral-500 hover:text-neutral-200'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {BREAKPOINT_LABELS[bp]}
@@ -100,8 +100,8 @@ function VariantOptionEditor({
               <span
                 className={`rounded px-1 text-[9px] ${
                   bp === activeBreakpoint
-                    ? 'bg-neutral-800 text-neutral-100'
-                    : 'bg-neutral-800/60 text-neutral-400'
+                    ? 'bg-muted text-foreground'
+                    : 'bg-muted/60 text-muted-foreground'
                 }`}
               >
                 {counts[bp]}
@@ -122,17 +122,17 @@ function VariantOptionEditor({
             ? 'flex items-center gap-2 …'
             : `Classes to apply at ≥${activeBreakpoint}. Prefix stripped — write text-sm, not ${activeBreakpoint}:text-sm.`
         }
-        className="min-h-[52px] resize-y rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[10px] leading-snug text-neutral-100 outline-none focus:border-neutral-600"
+        className="min-h-[52px] resize-y rounded border border-border bg-background px-2 py-1 font-mono text-[10px] leading-snug text-foreground outline-none focus:border-input"
       />
       {activeBreakpoint !== 'base' ? (
-        <p className="text-[10px] text-neutral-500">
+        <p className="text-[10px] text-muted-foreground">
           Applied at the {activeBreakpoint} breakpoint and up. Tailwind's sm:/md:/lg: utilities
           respond to the browser viewport, not the preview canvas width.
         </p>
       ) : null}
 
       {isOverridden ? (
-        <details className="text-[10px] text-neutral-500">
+        <details className="text-[10px] text-muted-foreground">
           <summary className="cursor-pointer">show original</summary>
           <pre className="mt-1 whitespace-pre-wrap break-words font-mono">{original}</pre>
         </details>
@@ -174,7 +174,7 @@ export function OverridePanel({ document }: OverridePanelProps) {
       <select
         value={selectedId}
         onChange={(e) => setSelectedId(e.target.value)}
-        className="rounded border border-neutral-800 bg-neutral-950 px-2 py-1 text-xs text-neutral-100 outline-none focus:border-neutral-600"
+        className="rounded border border-border bg-background px-2 py-1 text-xs text-foreground outline-none focus:border-input"
       >
         {editableComponents.length === 0 ? <option value="">No cva components</option> : null}
         {editableComponents.map((c) => (
@@ -185,14 +185,14 @@ export function OverridePanel({ document }: OverridePanelProps) {
       </select>
 
       {!component || component.variants.length === 0 ? (
-        <p className="text-[11px] text-neutral-500">
+        <p className="text-[11px] text-muted-foreground">
           Pick a component with cva variants to start editing.
         </p>
       ) : null}
 
       {component?.variants.map((axis) => (
         <div key={axis.name} className="flex flex-col gap-2 pt-1">
-          <p className="font-mono text-[11px] text-neutral-400">{axis.name}</p>
+          <p className="font-mono text-[11px] text-muted-foreground">{axis.name}</p>
           {axis.options.map((option) => {
             const key = `${axis.name}.${option}`;
             const original = component.variantClasses?.[key] ?? '';

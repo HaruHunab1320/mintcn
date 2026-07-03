@@ -49,21 +49,21 @@ function Swatch({ token, color, locked, onToggleLock }: SwatchProps) {
         onClick={onToggleLock}
         aria-label={`${token} swatch ${locked ? 'locked' : 'unlocked'}`}
         className={`group relative h-12 w-full overflow-hidden rounded-md border transition-colors ${
-          locked ? 'border-neutral-100' : 'border-neutral-800 hover:border-neutral-600'
+          locked ? 'border-ring' : 'border-border hover:border-input'
         }`}
         style={{ background: colorValueToCss(color) }}
       >
         <span
-          className={`absolute right-1 top-1 rounded bg-neutral-950/70 px-1 text-[10px] font-medium transition-opacity ${
+          className={`absolute right-1 top-1 rounded bg-background/70 px-1 text-[10px] font-medium transition-opacity ${
             locked
-              ? 'opacity-100 text-neutral-100'
-              : 'opacity-0 group-hover:opacity-100 text-neutral-300'
+              ? 'opacity-100 text-foreground'
+              : 'opacity-0 group-hover:opacity-100 text-foreground/90'
           }`}
         >
           {locked ? '🔒' : '🔓'}
         </span>
       </button>
-      <span className="truncate font-mono text-[10px] text-neutral-400">{token}</span>
+      <span className="truncate font-mono text-[10px] text-muted-foreground">{token}</span>
     </div>
   );
 }
@@ -147,15 +147,15 @@ export function PaletteBar({ document }: PaletteBarProps) {
   const lockedCount = Object.values(locks).filter(Boolean).length;
 
   return (
-    <section className="flex flex-col gap-2 rounded-lg border border-neutral-800 bg-neutral-950/40 p-3">
+    <section className="flex flex-col gap-2 rounded-lg border border-border bg-card/40 p-3">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-300">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-foreground/90">
             Palette
           </h2>
-          <p className="text-[11px] text-neutral-500">
+          <p className="text-[11px] text-muted-foreground">
             Click a swatch to lock · press{' '}
-            <kbd className="rounded border border-neutral-700 px-1 text-[10px]">space</kbd> to
+            <kbd className="rounded border border-border px-1 text-[10px]">space</kbd> to
             regenerate
             {lockedCount > 0 ? ` · ${lockedCount} locked` : ''}
           </p>
@@ -164,7 +164,7 @@ export function PaletteBar({ document }: PaletteBarProps) {
           <select
             value={strategy}
             onChange={(e) => setStrategy(e.target.value as PaletteStrategy)}
-            className="rounded border border-neutral-800 bg-neutral-950 px-2 py-1 text-xs text-neutral-100 outline-none focus:border-neutral-600"
+            className="rounded border border-border bg-background px-2 py-1 text-xs text-foreground outline-none focus:border-input"
           >
             {STRATEGY_OPTIONS.map((s) => (
               <option key={s.id} value={s.id}>
@@ -175,7 +175,7 @@ export function PaletteBar({ document }: PaletteBarProps) {
           <button
             type="button"
             onClick={generate}
-            className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-900 hover:bg-white"
+            className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90"
           >
             ↻ Generate
           </button>
@@ -183,7 +183,7 @@ export function PaletteBar({ document }: PaletteBarProps) {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={sampling}
-            className="rounded-md border border-neutral-700 px-3 py-1 text-xs text-neutral-200 hover:border-neutral-500 disabled:opacity-50"
+            className="rounded-md border border-border px-3 py-1 text-xs text-foreground hover:border-ring disabled:opacity-50"
           >
             {sampling ? 'Sampling…' : '⇪ From image'}
           </button>
@@ -193,7 +193,7 @@ export function PaletteBar({ document }: PaletteBarProps) {
               const name = window.prompt('Save palette as preset:');
               if (name?.trim()) savePreset(name.trim());
             }}
-            className="rounded-md border border-neutral-700 px-3 py-1 text-xs text-neutral-200 hover:border-neutral-500"
+            className="rounded-md border border-border px-3 py-1 text-xs text-foreground hover:border-ring"
           >
             Save preset
           </button>
@@ -217,7 +217,7 @@ export function PaletteBar({ document }: PaletteBarProps) {
           if (file?.type.startsWith('image/')) void applyImageFile(file);
         }}
         className={`relative grid grid-cols-5 gap-2 rounded-md transition-colors ${
-          dropActive ? 'ring-2 ring-neutral-100 ring-offset-2 ring-offset-neutral-950' : ''
+          dropActive ? 'ring-2 ring-ring ring-offset-2 ring-offset-background' : ''
         }`}
       >
         {KEY_PALETTE_TOKENS.map((token) => (
@@ -230,7 +230,7 @@ export function PaletteBar({ document }: PaletteBarProps) {
           />
         ))}
         {dropActive ? (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-md bg-neutral-950/70 text-xs font-medium text-neutral-100">
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-md bg-background/70 text-xs font-medium text-foreground">
             Drop to sample colors
           </div>
         ) : null}

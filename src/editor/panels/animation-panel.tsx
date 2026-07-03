@@ -33,10 +33,10 @@ function RowEditor({
 
   return (
     <div className="flex flex-col gap-2">
-      {names.length === 0 ? <p className="text-[11px] text-neutral-500">No entries yet.</p> : null}
+      {names.length === 0 ? <p className="text-[11px] text-muted-foreground">No entries yet.</p> : null}
       {names.map((name) => (
         <div key={name} className="flex flex-col gap-1">
-          <div className="flex items-center justify-between text-[11px] text-neutral-400">
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
             <span className="font-mono">
               {prefix}
               {name}
@@ -44,7 +44,7 @@ function RowEditor({
             <button
               type="button"
               onClick={() => onRemove(name)}
-              className="text-neutral-500 hover:text-red-400"
+              className="text-muted-foreground hover:text-red-400"
             >
               remove
             </button>
@@ -53,17 +53,17 @@ function RowEditor({
             type="text"
             value={entries[name]}
             onChange={(e) => onSet(name, e.target.value)}
-            className="rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+            className="rounded border border-border bg-background px-2 py-1 font-mono text-[11px] text-foreground outline-none focus:border-input"
           />
         </div>
       ))}
-      <div className="flex items-center gap-2 border-t border-neutral-800 pt-2">
+      <div className="flex items-center gap-2 border-t border-border pt-2">
         <input
           type="text"
           placeholder={placeholder}
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          className="flex-1 rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+          className="flex-1 rounded border border-border bg-background px-2 py-1 font-mono text-[11px] text-foreground outline-none focus:border-input"
         />
         <button
           type="button"
@@ -74,7 +74,7 @@ function RowEditor({
             onSet(key, defaultValue);
             setNewName('');
           }}
-          className="rounded border border-neutral-700 px-2 py-1 text-[11px] text-neutral-300 enabled:hover:border-neutral-500 disabled:opacity-40"
+          className="rounded border border-border px-2 py-1 text-[11px] text-foreground/90 enabled:hover:border-ring disabled:opacity-40"
         >
           add
         </button>
@@ -98,24 +98,24 @@ function EasingRow({ name, value, onChange, onRemove }: EasingRowProps) {
   return (
     <fieldset
       aria-label={`easing ${name}`}
-      className="flex min-w-0 flex-col gap-2 rounded-md border border-neutral-800 bg-neutral-950/40 p-2"
+      className="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-card/40 p-2"
     >
-      <div className="flex items-center justify-between text-[11px] text-neutral-400">
+      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="flex items-center gap-1 font-mono text-neutral-300"
+          className="flex items-center gap-1 font-mono text-foreground/90"
         >
-          <span className="text-neutral-500">{expanded ? '▾' : '▸'}</span>
+          <span className="text-muted-foreground">{expanded ? '▾' : '▸'}</span>
           --ease-{name}
         </button>
         <div className="flex items-center gap-2">
           {preset ? (
-            <span className="rounded bg-neutral-800/60 px-1.5 py-0.5 text-[10px] text-neutral-300">
+            <span className="rounded bg-muted/60 px-1.5 py-0.5 text-[10px] text-foreground/90">
               {preset.family} · {preset.label}
             </span>
           ) : null}
-          <button type="button" onClick={onRemove} className="text-neutral-500 hover:text-red-400">
+          <button type="button" onClick={onRemove} className="text-muted-foreground hover:text-red-400">
             remove
           </button>
         </div>
@@ -128,7 +128,7 @@ function EasingRow({ name, value, onChange, onRemove }: EasingRowProps) {
           const next = EASING_PRESETS.find((p) => p.id === e.target.value);
           if (next) onChange(next.value);
         }}
-        className="rounded border border-neutral-800 bg-neutral-950 px-2 py-1 text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+        className="rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground outline-none focus:border-input"
       >
         <option value="__custom__" disabled hidden>
           Custom
@@ -150,7 +150,7 @@ function EasingRow({ name, value, onChange, onRemove }: EasingRowProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         spellCheck={false}
-        className="rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+        className="rounded border border-border bg-background px-2 py-1 font-mono text-[11px] text-foreground outline-none focus:border-input"
       />
 
       {expanded && parsed.kind === 'cubic-bezier' ? (
@@ -161,7 +161,7 @@ function EasingRow({ name, value, onChange, onRemove }: EasingRowProps) {
         />
       ) : null}
       {expanded && parsed.kind !== 'cubic-bezier' ? (
-        <p className="text-[11px] text-neutral-500">
+        <p className="text-[11px] text-muted-foreground">
           Visual editor available for cubic-bezier() values only. Pick a preset or type a
           cubic-bezier tuple to unlock the drag handles.
         </p>
@@ -206,7 +206,7 @@ export function AnimationPanel({ document }: AnimationPanelProps) {
         description="--ease-* · cubic-bezier or keyword"
       >
         {easingNames.length === 0 ? (
-          <p className="text-[11px] text-neutral-500">No easings yet.</p>
+          <p className="text-[11px] text-muted-foreground">No easings yet.</p>
         ) : null}
         {easingNames.map((name) => (
           <EasingRow
@@ -217,13 +217,13 @@ export function AnimationPanel({ document }: AnimationPanelProps) {
             onRemove={() => removeEasing(name)}
           />
         ))}
-        <div className="flex items-center gap-2 border-t border-neutral-800 pt-2">
+        <div className="flex items-center gap-2 border-t border-border pt-2">
           <input
             type="text"
             placeholder="new easing (e.g. out)"
             value={newEasingName}
             onChange={(e) => setNewEasingName(e.target.value)}
-            className="flex-1 rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+            className="flex-1 rounded border border-border bg-background px-2 py-1 font-mono text-[11px] text-foreground outline-none focus:border-input"
           />
           <button
             type="button"
@@ -234,7 +234,7 @@ export function AnimationPanel({ document }: AnimationPanelProps) {
               setEasing(key, 'cubic-bezier(0.16, 1, 0.3, 1)');
               setNewEasingName('');
             }}
-            className="rounded border border-neutral-700 px-2 py-1 text-[11px] text-neutral-300 enabled:hover:border-neutral-500 disabled:opacity-40"
+            className="rounded border border-border px-2 py-1 text-[11px] text-foreground/90 enabled:hover:border-ring disabled:opacity-40"
           >
             add
           </button>

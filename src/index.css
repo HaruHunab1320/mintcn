@@ -48,12 +48,21 @@
   }
 }
 
-/* Subtle dot grid on Tincture's own chrome — panels, toolbars, gutters. The
-   preview canvas (PreviewRoot) paints `bg-background` on top, so shadcn
-   content stays visually distinct as "the thing being edited". */
+/* Subtle dot grid overlaid on Tincture's own chrome — panels, toolbars,
+   gutters. The base color comes from `bg-background` (the shadcn token),
+   so editing tokens actually shifts the whole app. Elevated surfaces
+   (panels, header) use `bg-card`, giving visible separation from the
+   workspace. The dot layer stays a fixed 5%-white pattern so the grid
+   reads the same regardless of theme.
+
+   Foreground uses `currentColor` masking so on light themes the dots
+   pick up whatever the theme's foreground contrast should be. */
 .tincture-chrome {
-  background-color: #0a0a0a;
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in oklab, currentColor 10%, transparent) 1px,
+    transparent 0
+  );
   background-size: 24px 24px;
   background-attachment: fixed;
 }

@@ -70,28 +70,28 @@ export function ConnectProject({ open, onClose, onLoaded, onResetToFixture }: Co
       role="dialog"
       aria-label="Connect project"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-start justify-center bg-neutral-950/70 pt-[15vh] backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-background/70 pt-[15vh] backdrop-blur-sm"
       onClick={onClose}
       onKeyDown={(e) => {
         if (e.key === 'Escape') onClose();
       }}
     >
       <div
-        className="flex w-full max-w-lg flex-col gap-3 rounded-lg border border-neutral-800 bg-neutral-950 p-5 text-neutral-100 shadow-2xl"
+        className="flex w-full max-w-lg flex-col gap-3 rounded-lg border border-border bg-background p-5 text-foreground shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
         role="document"
       >
         <header className="flex flex-col gap-1">
           <h2 className="text-sm font-medium tracking-tight">Connect a shadcn project</h2>
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-muted-foreground">
             Paste a public GitHub URL. Tincture reads components.json + your theme CSS + every
             components/ui/*.tsx file, then swaps the workspace to your project.
           </p>
         </header>
 
         <label className="flex flex-col gap-1">
-          <span className="text-[11px] uppercase tracking-wide text-neutral-500">GitHub URL</span>
+          <span className="text-[11px] uppercase tracking-wide text-muted-foreground">GitHub URL</span>
           <input
             ref={inputRef}
             type="url"
@@ -101,7 +101,7 @@ export function ConnectProject({ open, onClose, onLoaded, onResetToFixture }: Co
               if (e.key === 'Enter' && status !== 'loading') void submit();
             }}
             placeholder="https://github.com/user/repo (or /tree/branch/subdir)"
-            className="rounded border border-neutral-800 bg-neutral-900 px-2 py-1.5 font-mono text-xs text-neutral-100 outline-none focus:border-neutral-600"
+            className="rounded border border-border bg-muted px-2 py-1.5 font-mono text-xs text-foreground outline-none focus:border-input"
           />
         </label>
 
@@ -110,7 +110,7 @@ export function ConnectProject({ open, onClose, onLoaded, onResetToFixture }: Co
             {error}
           </p>
         ) : (
-          <p className="text-[11px] text-neutral-500">
+          <p className="text-[11px] text-muted-foreground">
             Unauthenticated GitHub API is rate-limited to 60 requests / hour per IP. A single
             connect uses one API call plus one raw fetch per file.
           </p>
@@ -120,7 +120,7 @@ export function ConnectProject({ open, onClose, onLoaded, onResetToFixture }: Co
           <button
             type="button"
             onClick={onResetToFixture}
-            className="text-[11px] text-neutral-500 hover:text-neutral-300"
+            className="text-[11px] text-muted-foreground hover:text-foreground/90"
           >
             ↺ Reset to fixture
           </button>
@@ -128,7 +128,7 @@ export function ConnectProject({ open, onClose, onLoaded, onResetToFixture }: Co
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border border-neutral-700 px-3 py-1 text-xs text-neutral-200 hover:border-neutral-500"
+              className="rounded-md border border-border px-3 py-1 text-xs text-foreground hover:border-ring"
             >
               Cancel
             </button>
@@ -136,7 +136,7 @@ export function ConnectProject({ open, onClose, onLoaded, onResetToFixture }: Co
               type="button"
               onClick={submit}
               disabled={status === 'loading' || !url.trim()}
-              className="rounded-md bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-900 hover:bg-white disabled:opacity-50"
+              className="rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {status === 'loading' ? 'Fetching…' : 'Connect'}
             </button>

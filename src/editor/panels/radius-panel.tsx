@@ -26,16 +26,16 @@ export function RadiusPanel({ document }: RadiusPanelProps) {
           step={0.025}
           value={isRem && Number.isFinite(numericRem) ? numericRem : 0.5}
           onChange={(e) => setRadius(`${e.target.value}rem`)}
-          className="flex-1 accent-neutral-200"
+          className="flex-1 accent-foreground"
         />
         <input
           type="text"
           value={base}
           onChange={(e) => setRadius(e.target.value)}
-          className="w-24 rounded border border-neutral-800 bg-neutral-950 px-2 py-1 font-mono text-xs text-neutral-100 outline-none focus:border-neutral-600"
+          className="w-24 rounded border border-border bg-background px-2 py-1 font-mono text-xs text-foreground outline-none focus:border-input"
         />
       </div>
-      <dl className="grid grid-cols-2 gap-x-3 gap-y-1 pt-1 font-mono text-[11px] text-neutral-500">
+      <dl className="grid grid-cols-2 gap-x-3 gap-y-1 pt-1 font-mono text-[11px] text-muted-foreground">
         <div className="flex items-center justify-between">
           <dt>--radius-sm</dt>
           <dd>calc({base} - 4px)</dd>

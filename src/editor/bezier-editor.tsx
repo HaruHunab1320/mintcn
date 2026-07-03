@@ -80,7 +80,7 @@ export function BezierEditor({ bezier, onChange, cssValue }: BezierEditorProps) 
 
   const numberField = (key: 'x1' | 'y1' | 'x2' | 'y2', label: string, min: number, max: number) => (
     <label className="flex min-w-0 flex-col gap-0.5">
-      <span className="text-[10px] uppercase tracking-wide text-neutral-500">{label}</span>
+      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>
       <input
         type="number"
         step={0.01}
@@ -93,7 +93,7 @@ export function BezierEditor({ bezier, onChange, cssValue }: BezierEditorProps) 
           if (!Number.isFinite(n)) return;
           onChange({ ...bezier, [key]: clamp(n, min, max) });
         }}
-        className="w-full rounded border border-neutral-800 bg-neutral-950 px-1.5 py-0.5 font-mono text-[11px] text-neutral-100 outline-none focus:border-neutral-600"
+        className="w-full rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[11px] text-foreground outline-none focus:border-input"
       />
     </label>
   );
@@ -104,7 +104,7 @@ export function BezierEditor({ bezier, onChange, cssValue }: BezierEditorProps) 
         ref={svgRef}
         width={VIEW}
         height={VIEW}
-        className="self-center rounded-md border border-neutral-800 bg-neutral-950"
+        className="self-center rounded-md border border-border bg-background"
         onMouseDown={(e) => {
           // If the user clicks the SVG background, snap the nearest handle to
           // that point — feels faster than "click handle, then drag."
@@ -190,10 +190,10 @@ export function BezierEditor({ bezier, onChange, cssValue }: BezierEditorProps) 
       </svg>
 
       {/* Preview strip — an animated dot that reruns the transition on every curve change. */}
-      <div className="relative h-2 overflow-hidden rounded-full bg-neutral-800">
+      <div className="relative h-2 overflow-hidden rounded-full bg-muted">
         <span
           key={replayKey}
-          className="absolute inset-y-0 left-0 w-3 rounded-full bg-neutral-100"
+          className="absolute inset-y-0 left-0 w-3 rounded-full bg-primary"
           style={{
             animation: `tincture-bezier-preview 1200ms ${cssValue} 0s 1 forwards`,
           }}
