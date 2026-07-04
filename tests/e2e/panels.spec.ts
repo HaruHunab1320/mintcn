@@ -118,7 +118,10 @@ test('radius panel: editing --radius updates the preview', async ({ page }) => {
 
 test('typography panel: editing --font-sans flows into the document', async ({ page }) => {
   await page.goto('/');
-  const sansInput = page.locator('label:has-text("--font-sans") input');
+  // The new typography panel uses a chip-based row: pick button + raw text
+  // fallthrough. Both target the same store field. Use the raw text input
+  // (aria-labeled "--font-sans") to bypass the picker for this smoke test.
+  const sansInput = page.getByLabel('--font-sans', { exact: true });
   await sansInput.fill('"Geist", sans-serif');
   await sansInput.blur();
 

@@ -7,6 +7,8 @@ Live status:
 - ✅ Post-MVP wave: palette, ⌘K, shadow editor, undo/redo, easing editor, image→palette, connect-your-own-project
 - ✅ Responsive: device preview toggle + per-breakpoint override tabs
 - ✅ Live override preview (Button + Badge), dot-grid chrome
+- ✅ Whole-app-as-preview: shadcn tokens hoisted to :root; solid chrome; reset button
+- ✅ Google Fonts picker + live-loading typography stacks
 - ⏳ Queued: everything else below
 
 ---
@@ -74,7 +76,7 @@ Inventoried by pain-per-edit. Each row is a discrete piece of follow-up work.
 | Today | Rough because | What would help |
 |---|---|---|
 | **Shadow strings** (`0 1px 2px 0 rgb(0 0 0 / 0.05)`) | One typo silently breaks the shadow | Split into x/y/blur/spread/color/inset fields with a preview swatch + multi-layer stacking |
-| **Font stacks** as raw text | Typos in fallback syntax; no preview of the actual font | Google Fonts picker (search + live preview) + chip-based stack builder |
+| ~~**Font stacks** as raw text~~ | ~~Typos in fallback syntax; no preview of the actual font~~ | ✅ Google Fonts picker (search + category filter + live preview via lazy-loaded font CSS) |
 | **Easing curves** as `cubic-bezier(...)` | No one can hand-author these | Bezier curve editor (drag handles) + preset library (Material, Apple, etc.) + animation preview button |
 | **Override class strings** as raw textareas | Tailwind is a lot to remember | Chip-based editor with autocomplete; per-state tabs (Base / Hover / Focus / Active / Disabled) |
 | **No undo/redo** | One miss-drag on a slider and you've lost the previous value | Time-travel history (Zustand has temporal middleware) |

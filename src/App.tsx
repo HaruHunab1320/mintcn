@@ -12,6 +12,8 @@ import {
   type ExportShape,
   PaletteBar,
   type PanelId,
+  parsePrimaryFamily,
+  preloadFontFamilies,
   PropertyPanel,
   selectFilesForShape,
 } from '@/editor';
@@ -55,6 +57,18 @@ export default function App() {
         useProjectStore;
     }
   }, [load]);
+
+  // Preload the head font of each font-family stack so the preview shows the
+  // right typeface immediately after mount — otherwise the browser falls back
+  // to system-ui until the user opens the picker.
+  useEffect(() => {
+    if (!document) return;
+    const fam = document.tokens.typography.fontFamily;
+    const heads = [fam.sans, fam.serif, fam.mono]
+      .map(parsePrimaryFamily)
+      .filter((f): f is string => typeof f === 'string' && f.length > 0);
+    if (heads.length > 0) preloadFontFamilies(heads);
+  }, [document]);
 
   const emitted = useMemo(() => {
     if (!document) return [];
