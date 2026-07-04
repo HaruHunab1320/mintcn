@@ -35,9 +35,22 @@ interface ProjectState {
    * time (from the fixture, from a GitHub fetch, etc.).
    */
   originals: Record<string, string>;
+  /**
+   * JSON-serialized snapshot of the document taken at `load` time. Used by
+   * `resetToInitial` to restore the baseline without needing to re-parse the
+   * originals. Not consumed by any other action.
+   */
+  _initialSnapshot: string | null;
 
   load: (input: unknown, originals?: Record<string, string>) => void;
   unload: () => void;
+  /**
+   * Discards every edit made since the last load() and restores the document
+   * to the snapshot taken at load time — the fixture's baseline, or the
+   * originals of whatever project was connected. Originals are unchanged, so
+   * emit + diff still produce the same "on-disk vs edited" comparison.
+   */
+  resetToInitial: () => void;
 
   setTokenColor: (theme: Theme, token: SemanticColorToken, value: ColorValue) => void;
   /**
@@ -111,13 +124,24 @@ export const useProjectStore = create<ProjectState>()(
     (set, get) => ({
       document: null,
       originals: {},
+      _initialSnapshot: null,
 
       load: (input, originals) => {
         const document = validateProjectDocument(input);
-        set(originals !== undefined ? { document, originals } : { document });
+        set({
+          document,
+          _initialSnapshot: JSON.stringify(document),
+          ...(originals !== undefined ? { originals } : {}),
+        });
       },
 
-      unload: () => set({ document: null, originals: {} }),
+      unload: () => set({ document: null, originals: {}, _initialSnapshot: null }),
+
+      resetToInitial: () => {
+        const snapshot = get()._initialSnapshot;
+        if (!snapshot) return;
+        set({ document: JSON.parse(snapshot) as ProjectDocument });
+      },
 
       setTokenColor: (theme, token, value) =>
         set((state) => {

@@ -147,7 +147,7 @@ export function PaletteBar({ document }: PaletteBarProps) {
   const lockedCount = Object.values(locks).filter(Boolean).length;
 
   return (
-    <section className="flex flex-col gap-2 rounded-lg border border-border bg-card/40 p-3">
+    <section className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-xs font-semibold uppercase tracking-wider text-foreground/90">

@@ -36,6 +36,7 @@ export default function App() {
   const document = useProjectStore((s) => s.document);
   const originals = useProjectStore((s) => s.originals);
   const load = useProjectStore((s) => s.load);
+  const resetToInitial = useProjectStore((s) => s.resetToInitial);
   const applyPalette = useProjectStore((s) => s.applyPalette);
   const savePreset = useProjectStore((s) => s.savePreset);
   const temporal = useTemporal();
@@ -184,7 +185,7 @@ export default function App() {
         theme === 'dark' ? 'dark' : ''
       }`}
     >
-      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-4">
+      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-6 py-4 shadow-sm">
         <div>
           <h1 className="text-lg font-medium tracking-tight">Tincture</h1>
           <p className="text-sm text-muted-foreground">
@@ -201,6 +202,22 @@ export default function App() {
               className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs text-foreground hover:border-ring"
             >
               ⇱ Connect
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (
+                  window.confirm(
+                    'Reset every edit back to the loaded project baseline? This clears all token, override, and preset changes.',
+                  )
+                ) {
+                  resetToInitial();
+                }
+              }}
+              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs text-foreground hover:border-destructive hover:text-destructive"
+              title="Discard all edits and restore the loaded project's baseline"
+            >
+              ↺ Reset
             </button>
             <button
               type="button"
