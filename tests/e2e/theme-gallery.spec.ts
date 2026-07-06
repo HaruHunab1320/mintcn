@@ -46,6 +46,67 @@ test('category filter narrows the visible cards', async ({ page }) => {
   await expect(dialog.locator('[data-theme-id="cyberpunk-2077"]')).toHaveCount(0);
 });
 
+test('save current + reopen: new preset shows as a Mine card and applies on click', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.waitForSelector('.tincture-preview');
+  await page.route('https://fonts.googleapis.com/**', (route) =>
+    route.fulfill({ status: 200, contentType: 'text/css', body: '' }),
+  );
+
+  // Nudge --primary so this preset differs from any curated one.
+  const colorSection = page
+    .locator('section')
+    .filter({ has: page.getByRole('heading', { name: 'Colors' }) });
+  await colorSection
+    .getByRole('button')
+    .filter({ hasText: /^primary$/ })
+    .first()
+    .click();
+  await colorSection.locator('input[type="text"]').first().fill('oklch(0.4 0.24 111)');
+  await colorSection.locator('input[type="text"]').first().blur();
+
+  await page.getByRole('button', { name: /Themes/ }).click();
+  const dialog = page.getByRole('dialog', { name: 'Theme gallery' });
+  await expect(dialog).toBeVisible();
+
+  await dialog.getByRole('button', { name: /Save current/ }).click();
+  const nameInput = dialog.getByPlaceholder('theme name');
+  await nameInput.fill('electric-lime');
+  // Submit via Enter — the "save" button unmounts synchronously on click as
+  // the input dismounts, which races Playwright's post-click stability check.
+  await nameInput.press('Enter');
+
+  // Filter auto-jumps to Mine; the new card is visible.
+  const card = dialog.locator('[data-theme-id^="preset-"]', { hasText: 'electric-lime' }).first();
+  await expect(card).toBeVisible();
+
+  // Change --primary to something else so we can prove the load restores it.
+  await dialog.getByRole('button', { name: 'Close' }).click();
+  await colorSection.locator('input[type="text"]').first().fill('oklch(0.6 0.1 30)');
+  await colorSection.locator('input[type="text"]').first().blur();
+
+  await page.getByRole('button', { name: /Themes/ }).click();
+  // Match "Mine1" (filter chip with count badge) — not the "electric-lime Mine …" card.
+  await dialog.getByRole('button', { name: /^Mine\d*$/ }).click();
+  await dialog.locator('[data-theme-id^="preset-"]', { hasText: 'electric-lime' }).first().click();
+
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const win = window as unknown as {
+          __TINCTURE_STORE__: { getState: () => { document: unknown } };
+        };
+        const doc = win.__TINCTURE_STORE__.getState().document as {
+          tokens: { colors: { light: { primary: { value: string } } } };
+        };
+        return doc.tokens.colors.light.primary.value;
+      }),
+    )
+    .toBe('oklch(0.4 0.24 111)');
+});
+
 test('Escape closes the gallery', async ({ page }) => {
   await page.goto('/');
   await page.waitForSelector('.tincture-preview');
