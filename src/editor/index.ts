@@ -10,3 +10,4 @@ export * from './google-fonts';
 export * from './palette-bar';
 export * from './panel-section';
 export * from './property-panel';
+export * from './share-link';

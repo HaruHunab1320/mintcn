@@ -2,18 +2,23 @@ import { fixtureOriginals, fixtureProject } from 'virtual:tincture-fixture';
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { changedFiles, emitProject } from '@/codegen';
 import {
+  applyShareableSlice,
   buildCommands,
+  buildShareUrl,
   CommandPalette,
   ConnectProject,
+  decodeShareLink,
   DiffView,
   downloadProjectZip,
   downloadSingleFile,
+  encodeShareLink,
   ExportMenu,
   type ExportShape,
   PaletteBar,
   type PanelId,
   parsePrimaryFamily,
   preloadFontFamilies,
+  projectToShareableSlice,
   PropertyPanel,
   selectFilesForShape,
 } from '@/editor';
@@ -47,6 +52,7 @@ export default function App() {
   const [showDiff, setShowDiff] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);
+  const [shareState, setShareState] = useState<'idle' | 'copied' | 'error'>('idle');
   const [theme, setTheme] = useState<PreviewTheme>('light');
   const [forceState, setForceState] = useState<ForceState>('off');
 
@@ -55,6 +61,21 @@ export default function App() {
     if (import.meta.env.DEV) {
       (window as unknown as { __TINCTURE_STORE__: typeof useProjectStore }).__TINCTURE_STORE__ =
         useProjectStore;
+    }
+    // Rehydrate a shared theme from the URL hash. Runs after the fixture is
+    // loaded so the shared slice (tokens/overrides/presets) overlays on top
+    // of the fixture's component set. Errors are logged; a broken link falls
+    // back to the plain fixture rather than crashing.
+    const hash = window.location.hash;
+    if (hash.startsWith('#doc=')) {
+      decodeShareLink(hash)
+        .then((slice) => {
+          const merged = applyShareableSlice(fixtureProject, slice);
+          load(merged, fixtureOriginals);
+        })
+        .catch((err) => {
+          console.warn('[tincture] could not hydrate URL doc:', err);
+        });
     }
   }, [load]);
 
@@ -106,6 +127,22 @@ export default function App() {
     if (!document) return;
     applyPalette(generatePalette({ strategy: 'monochromatic' }));
   }, [document, applyPalette]);
+
+  const shareLink = useCallback(async () => {
+    if (!document) return;
+    try {
+      const encoded = await encodeShareLink(projectToShareableSlice(document));
+      const url = buildShareUrl(encoded);
+      window.location.hash = `doc=${encoded}`;
+      await navigator.clipboard.writeText(url);
+      setShareState('copied');
+      window.setTimeout(() => setShareState('idle'), 1800);
+    } catch (err) {
+      console.warn('[tincture] share failed:', err);
+      setShareState('error');
+      window.setTimeout(() => setShareState('idle'), 2400);
+    }
+  }, [document]);
 
   const toggleTheme = useCallback(() => {
     setTheme((t) => (t === 'light' ? 'dark' : 'light'));
@@ -276,6 +313,21 @@ export default function App() {
                   {changed.length}
                 </span>
               ) : null}
+            </button>
+            <button
+              type="button"
+              onClick={shareLink}
+              aria-label="Share this theme"
+              title="Copy a shareable URL that rehydrates this exact theme"
+              className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs transition-colors ${
+                shareState === 'copied'
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : shareState === 'error'
+                    ? 'border-destructive text-destructive'
+                    : 'border-border text-foreground hover:border-ring'
+              }`}
+            >
+              {shareState === 'copied' ? '✓ Copied' : shareState === 'error' ? '✕ Failed' : '↗ Share'}
             </button>
             <ExportMenu files={emitted} archiveName={archiveName} />
           </div>

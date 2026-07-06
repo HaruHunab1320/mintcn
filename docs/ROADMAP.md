@@ -9,6 +9,7 @@ Live status:
 - ✅ Live override preview (Button + Badge), dot-grid chrome
 - ✅ Whole-app-as-preview: shadcn tokens hoisted to :root; solid chrome; reset button
 - ✅ Google Fonts picker + live-loading typography stacks
+- ✅ URL-shareable themes (`#doc=...` hash, gzip + base64url, hydrates on load)
 - ⏳ Queued: everything else below
 
 ---
@@ -106,4 +107,4 @@ By time-to-delight for a first-time visitor:
 
 - **Live preview of overrides** — shipped for `Button` + `Badge` via a `withOverride` HOC that appends the delta to `className` and lets shadcn's own `tailwind-merge` resolve conflicts. Two follow-ups: (a) extend the wrapper to Input/Card/Alert/other cva-heavy components; (b) structural rewrites (element type / wrapper changes) still only surface on export — needs a genuinely different mechanism.
 - **Tincture-flavored shadcn registry** (Path B from M6 design) — alongside vanilla shadcn, ship parameterized component versions that consume state tokens for live retroactive propagation. Phase 2 territory; only justified once we have real user demand.
-- **Theme gallery + URL-shareable themes** — once palette + presets are stable, a shared link should rehydrate the document directly. Cheap to build, big distribution upside.
+- **Theme gallery + URL-shareable themes** — ✅ URL-shareable half shipped (`#doc=` hash rehydrates). Gallery still open: needs a curated home for themes people have shared. Cheap follow-up.
