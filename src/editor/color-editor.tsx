@@ -1,5 +1,6 @@
 import type { ColorValue, SemanticColorToken } from '@/schema';
 import { type Theme, useProjectStore } from '@/store/project-store';
+import { ColorWheel } from './color-wheel';
 import { clampOklch, formatOklch, type OklchValue, parseOklch } from './oklch';
 
 export function colorValueToCss(value: ColorValue): string {
@@ -103,6 +104,15 @@ export function ColorEditor({ theme, token, value }: ColorEditorProps) {
           <span className="text-[11px] text-muted-foreground">{theme}</span>
         </div>
       </div>
+
+      {oklch ? (
+        <ColorWheel
+          l={oklch.l}
+          c={oklch.c}
+          h={oklch.h}
+          onChange={(next) => writeOklch({ ...oklch, ...next })}
+        />
+      ) : null}
 
       {oklch ? (
         <div className="flex flex-col gap-2">

@@ -10,6 +10,7 @@ Live status:
 - ✅ Whole-app-as-preview: shadcn tokens hoisted to :root; solid chrome; reset button
 - ✅ Google Fonts picker + live-loading typography stacks
 - ✅ URL-shareable themes (`#doc=...` hash, gzip + base64url, hydrates on load)
+- ✅ OKLCH color wheel + curated theme gallery (sci-fi / hacker starters)
 - ⏳ Queued: everything else below
 
 ---

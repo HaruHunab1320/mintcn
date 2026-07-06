@@ -21,6 +21,7 @@ import {
   projectToShareableSlice,
   PropertyPanel,
   selectFilesForShape,
+  ThemeGallery,
 } from '@/editor';
 import { generatePalette } from '@/palette';
 import { Canvas, type ForceState, type PreviewTheme, tokensToCssVars } from '@/renderer';
@@ -53,6 +54,7 @@ export default function App() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);
   const [shareState, setShareState] = useState<'idle' | 'copied' | 'error'>('idle');
+  const [galleryOpen, setGalleryOpen] = useState(false);
   const [theme, setTheme] = useState<PreviewTheme>('light');
   const [forceState, setForceState] = useState<ForceState>('off');
 
@@ -249,6 +251,14 @@ export default function App() {
           <div className="flex items-center gap-2">
             <button
               type="button"
+              onClick={() => setGalleryOpen(true)}
+              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs text-foreground hover:border-ring"
+              title="Browse curated themes"
+            >
+              🎨 Themes
+            </button>
+            <button
+              type="button"
               onClick={() => setConnectOpen(true)}
               className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs text-foreground hover:border-ring"
             >
@@ -370,6 +380,7 @@ export default function App() {
         open={paletteOpen}
         onClose={() => setPaletteOpen(false)}
       />
+      <ThemeGallery open={galleryOpen} onClose={() => setGalleryOpen(false)} />
     </div>
   );
 }

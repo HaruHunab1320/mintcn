@@ -10,6 +10,7 @@ import {
   type ProjectDocument,
   type SemanticColorToken,
   type StateTokens,
+  type TokenState,
   validateProjectDocument,
 } from '@/schema';
 
@@ -60,6 +61,17 @@ interface ProjectState {
   applyPalette: (input: {
     light: Record<SemanticColorToken, ColorValue>;
     dark: Record<SemanticColorToken, ColorValue>;
+  }) => void;
+  /**
+   * Apply a curated palette-plus-vibe bundle: light/dark color maps, a
+   * radius, and the sans/serif/mono font stacks. Other tokens (scale,
+   * spacing, shadows, borders, states, animations) stay from the current
+   * document. Merges as a single history step.
+   */
+  applyTheme: (spec: {
+    colors: TokenState['colors'];
+    radius: string;
+    fontFamily: TokenState['typography']['fontFamily'];
   }) => void;
   setRadius: (value: string) => void;
   setFontFamily: (family: FontFamilyKey, value: string) => void;
@@ -172,6 +184,25 @@ export const useProjectStore = create<ProjectState>()(
               tokens: {
                 ...document.tokens,
                 colors: { light: input.light, dark: input.dark },
+              },
+            },
+          };
+        }),
+
+      applyTheme: (spec) =>
+        set((state) => {
+          const document = requireDocument(state.document);
+          return {
+            document: {
+              ...document,
+              tokens: {
+                ...document.tokens,
+                colors: spec.colors,
+                radius: { base: spec.radius },
+                typography: {
+                  ...document.tokens.typography,
+                  fontFamily: spec.fontFamily,
+                },
               },
             },
           };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { oklchDistance, rgbToOklch } from './color-space';
+import { oklchDistance, oklchToRgb, rgbToOklch } from './color-space';
 
 describe('rgbToOklch', () => {
   it('maps pure white to (1, 0, *)', () => {
@@ -25,6 +25,36 @@ describe('rgbToOklch', () => {
   it('maps sRGB blue to a hue near 264°', () => {
     const { h } = rgbToOklch(0, 0, 255);
     expect(h).toBeCloseTo(264.05, 0);
+  });
+});
+
+describe('oklchToRgb', () => {
+  it('round-trips pure sRGB primaries within one 8-bit step', () => {
+    for (const [r, g, b] of [
+      [255, 0, 0],
+      [0, 255, 0],
+      [0, 0, 255],
+      [255, 255, 255],
+      [0, 0, 0],
+    ]) {
+      const oklch = rgbToOklch(r, g, b);
+      const back = oklchToRgb(oklch.l, oklch.c, oklch.h);
+      expect(Math.abs(back.r - r)).toBeLessThanOrEqual(1);
+      expect(Math.abs(back.g - g)).toBeLessThanOrEqual(1);
+      expect(Math.abs(back.b - b)).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('flags out-of-gamut when chroma exceeds sRGB at a given lightness', () => {
+    // Very high chroma at mid-lightness is not reachable in sRGB.
+    const { outOfGamut } = oklchToRgb(0.5, 0.4, 0);
+    expect(outOfGamut).toBe(true);
+  });
+
+  it('reports in-gamut for a safe color', () => {
+    // Neutral gray — zero chroma is always in sRGB.
+    const { outOfGamut } = oklchToRgb(0.5, 0.0, 0);
+    expect(outOfGamut).toBe(false);
   });
 });
 
