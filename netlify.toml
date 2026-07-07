@@ -1,0 +1,23 @@
+[build]
+  command = "pnpm build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  # Netlify defaults to Node 18; the callback uses top-level fetch
+  # which is stable in 20+.
+  NODE_VERSION = "20"
+
+# Route the OAuth callback through a Netlify Function while keeping the
+# clean `/api/auth/callback` URL registered with GitHub. Status 200 = rewrite
+# (URL stays the same in the browser), not a client-visible redirect.
+[[redirects]]
+  from = "/api/auth/callback"
+  to = "/.netlify/functions/auth-callback"
+  status = 200
+
+# SPA fallback — every non-API path renders index.html.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
