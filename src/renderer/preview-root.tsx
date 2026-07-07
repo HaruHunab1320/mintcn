@@ -38,7 +38,7 @@ export function PreviewRoot({
       data-theme={theme}
       data-force-state={forceState === 'off' ? undefined : forceState}
       style={vars}
-      className={`${composed} bg-background text-foreground`}
+      className={`${composed} bg-background font-sans text-foreground`}
     >
       {children}
     </div>

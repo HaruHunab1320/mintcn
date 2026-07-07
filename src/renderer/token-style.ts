@@ -34,6 +34,14 @@ export function tokensToCssVars(doc: ProjectDocument, theme: MintcnTheme): CSSPr
   for (const [name, value] of Object.entries(doc.tokens.shadows ?? {})) {
     style[`--shadow-${name}`] = value;
   }
+  // Font stacks. Emitting these at the app/preview root lets the
+  // shadcn `font-sans` / `font-serif` / `font-mono` utilities pick up the
+  // active theme's typeface without touching component source. Tailwind v4
+  // reads --font-sans directly.
+  const fam = doc.tokens.typography.fontFamily;
+  style['--font-sans'] = fam.sans;
+  style['--font-serif'] = fam.serif;
+  style['--font-mono'] = fam.mono;
   const states = doc.tokens.states;
   if (states) {
     style['--hover-opacity'] = String(states.hoverOpacity);

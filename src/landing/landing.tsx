@@ -1,5 +1,7 @@
 import { fixtureOriginals, fixtureProject } from 'virtual:mintcn-fixture';
 import { useEffect, useMemo, useState } from 'react';
+import { parsePrimaryFamily, preloadFontFamilies } from '@/editor';
+import { CURATED_THEMES } from '@/editor/theme-gallery-data';
 import { useProjectStore } from '@/store/project-store';
 import { buildChapters, type ChapterActions } from './chapters';
 import { PreviewShell } from './preview-shell';
@@ -35,6 +37,17 @@ export function Landing() {
   // visitor came from. Reset on unmount so returning to /editor is clean.
   useEffect(() => {
     load(fixtureProject, fixtureOriginals);
+    // Preload every font referenced by a curated theme in one batched
+    // Google Fonts request so scroll-driven theme swaps don't flash the
+    // system font on first apply.
+    const primaries = new Set<string>();
+    for (const theme of CURATED_THEMES) {
+      for (const stack of Object.values(theme.fontFamily)) {
+        const p = parsePrimaryFamily(stack);
+        if (p) primaries.add(p);
+      }
+    }
+    preloadFontFamilies([...primaries]);
     return () => {
       load(fixtureProject, fixtureOriginals);
     };
