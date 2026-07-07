@@ -62,26 +62,70 @@ export class ShadcnProjectAmbiguousError extends Error {
   }
 }
 
-async function githubJson<T>(url: string): Promise<T> {
+function authHeaders(token: string | undefined): Record<string, string> {
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function githubJson<T>(url: string, token: string | undefined): Promise<T> {
   const res = await fetch(url, {
-    headers: { Accept: 'application/vnd.github+json' },
+    headers: { Accept: 'application/vnd.github+json', ...authHeaders(token) },
   });
   if (!res.ok) {
-    const message =
-      res.status === 403
-        ? 'GitHub API rate-limit hit (60 requests/hour without auth). Try again later.'
+    const limit = res.status === 403 && res.headers.get('x-ratelimit-remaining') === '0';
+    const message = limit
+      ? token
+        ? 'GitHub API rate-limit hit (5000/hour authenticated). Try again in a bit.'
+        : 'GitHub API rate-limit hit (60/hour unauthenticated). Sign in with GitHub to get 5000/hour.'
+      : res.status === 401
+        ? 'GitHub token was rejected — sign in again.'
         : res.status === 404
-          ? 'Not found — check the URL, branch, and subdir path.'
+          ? token
+            ? "Not found — check the URL, branch, and subdir path. If it's private, verify your account has access."
+            : "Not found — check the URL, branch, and subdir path. If it's a private repo, sign in with GitHub."
           : `GitHub request failed: ${res.status} ${res.statusText}`;
     throw new Error(message);
   }
   return (await res.json()) as T;
 }
 
-async function fetchText(url: string): Promise<string> {
+/**
+ * Fetch a file's raw text from a repo. Authenticated calls go through the
+ * `contents` API with `Accept: application/vnd.github.raw` (works for private
+ * repos). Unauth calls hit `raw.githubusercontent.com` directly (uncapped and
+ * doesn't count toward the API rate limit for public repos).
+ */
+async function fetchRepoFile(
+  ref: GitHubProjectRef,
+  filePath: string,
+  token: string | undefined,
+): Promise<string> {
+  if (token) {
+    const url = `https://api.github.com/repos/${ref.owner}/${ref.repo}/contents/${encodeURI(
+      filePath,
+    )}?ref=${encodeURIComponent(ref.branch)}`;
+    const res = await fetch(url, {
+      headers: { Accept: 'application/vnd.github.raw', ...authHeaders(token) },
+    });
+    if (!res.ok) throw new Error(`Failed to fetch ${filePath}: ${res.status} ${res.statusText}`);
+    return res.text();
+  }
+  const url = `https://raw.githubusercontent.com/${ref.owner}/${ref.repo}/${ref.branch}/${filePath}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
+  if (!res.ok) throw new Error(`Failed to fetch ${filePath}: ${res.status} ${res.statusText}`);
   return res.text();
+}
+
+async function fetchRepoFileIfExists(
+  ref: GitHubProjectRef,
+  filePath: string,
+  token: string | undefined,
+): Promise<string | null> {
+  try {
+    return await fetchRepoFile(ref, filePath, token);
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('404')) return null;
+    throw err;
+  }
 }
 
 function joinPath(...parts: string[]): string {
@@ -93,11 +137,14 @@ function joinPath(...parts: string[]): string {
  * found (empty string for repo root). Uses one git/trees API call with
  * recursive=1 — cheap in rate-limit terms.
  */
-export async function discoverShadcnRoots(ref: GitHubProjectRef): Promise<string[]> {
+export async function discoverShadcnRoots(
+  ref: GitHubProjectRef,
+  token?: string,
+): Promise<string[]> {
   const url = `https://api.github.com/repos/${ref.owner}/${ref.repo}/git/trees/${encodeURIComponent(
     ref.branch,
   )}?recursive=1`;
-  const tree = await githubJson<GitHubTreeResponse>(url);
+  const tree = await githubJson<GitHubTreeResponse>(url, token);
   const dirs: string[] = [];
   for (const entry of tree.tree) {
     if (entry.type !== 'blob') continue;
@@ -112,33 +159,39 @@ export async function discoverShadcnRoots(ref: GitHubProjectRef): Promise<string
   return dirs;
 }
 
-async function fetchTextIfExists(url: string): Promise<string | null> {
-  const res = await fetch(url);
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
-  return res.text();
+export interface FetchProjectOptions {
+  /** GitHub Bearer token (from OAuth Web Flow). Enables private repos + 5000/hr. */
+  token?: string;
 }
 
 /**
- * Fetch a shadcn project from a public GitHub repo. If the initial path has
- * no components.json, walks the whole tree to find one — silently uses the
- * only candidate, or throws with the list if there's more than one.
+ * Fetch a shadcn project from a GitHub repo (public or private).
  *
- * Uses raw.githubusercontent.com for file bodies (uncapped) and one contents
- * API call per directory listing (rate-limited).
+ * If the initial path has no components.json, walks the whole tree to find
+ * one — silently uses the only candidate, or throws with the list if there's
+ * more than one.
+ *
+ * Authenticated calls go through the api.github.com contents endpoint (which
+ * handles private repos); unauth calls use raw.githubusercontent.com for
+ * uncapped public reads.
  */
-export async function fetchProjectFromGitHub(ref: GitHubProjectRef): Promise<ProjectSources> {
-  const rawBase = `https://raw.githubusercontent.com/${ref.owner}/${ref.repo}/${ref.branch}`;
+export async function fetchProjectFromGitHub(
+  ref: GitHubProjectRef,
+  options: FetchProjectOptions = {},
+): Promise<ProjectSources> {
+  const { token } = options;
   const apiBase = `https://api.github.com/repos/${ref.owner}/${ref.repo}/contents`;
 
   let effectiveSubdir = ref.subdir;
-  let componentsJson = await fetchTextIfExists(
-    `${rawBase}/${joinPath(effectiveSubdir, 'components.json')}`,
+  let componentsJson = await fetchRepoFileIfExists(
+    ref,
+    joinPath(effectiveSubdir, 'components.json'),
+    token,
   );
 
   // Missing at the given path — see if we can find one automatically.
   if (componentsJson === null) {
-    const candidates = await discoverShadcnRoots(ref);
+    const candidates = await discoverShadcnRoots(ref, token);
     if (candidates.length === 0) {
       throw new Error(
         `No components.json anywhere in ${ref.owner}/${ref.repo}@${ref.branch} — is this a shadcn project?`,
@@ -149,7 +202,11 @@ export async function fetchProjectFromGitHub(ref: GitHubProjectRef): Promise<Pro
     }
     // Exactly one candidate, or the user's subdir happens to be one of them.
     effectiveSubdir = candidates.includes(effectiveSubdir) ? effectiveSubdir : candidates[0];
-    componentsJson = await fetchText(`${rawBase}/${joinPath(effectiveSubdir, 'components.json')}`);
+    componentsJson = await fetchRepoFile(
+      ref,
+      joinPath(effectiveSubdir, 'components.json'),
+      token,
+    );
   }
 
   const parsed = JSON.parse(componentsJson) as {
@@ -158,14 +215,14 @@ export async function fetchProjectFromGitHub(ref: GitHubProjectRef): Promise<Pro
   };
 
   const cssRel = parsed.tailwind.css;
-  const globalsCss = await fetchText(`${rawBase}/${joinPath(effectiveSubdir, cssRel)}`);
+  const globalsCss = await fetchRepoFile(ref, joinPath(effectiveSubdir, cssRel), token);
 
   const uiDirRel = 'components/ui';
   const contentsUrl = `${apiBase}/${joinPath(
     effectiveSubdir,
     uiDirRel,
   )}?ref=${encodeURIComponent(ref.branch)}`;
-  const listing = await githubJson<GitHubContentEntry[]>(contentsUrl);
+  const listing = await githubJson<GitHubContentEntry[]>(contentsUrl, token);
   const uiFiles = listing.filter(
     (e) => e.type === 'file' && e.name.endsWith('.tsx') && !e.name.endsWith('.test.tsx'),
   );
@@ -173,8 +230,7 @@ export async function fetchProjectFromGitHub(ref: GitHubProjectRef): Promise<Pro
   const componentSources: Record<string, string> = {};
   await Promise.all(
     uiFiles.map(async (entry) => {
-      if (!entry.download_url) return;
-      const text = await fetchText(entry.download_url);
+      const text = await fetchRepoFile(ref, entry.path, token);
       componentSources[`${uiDirRel}/${entry.name}`] = text;
     }),
   );

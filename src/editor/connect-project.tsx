@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { loadProjectFromSources } from '@/ingest';
 import type { ProjectDocument } from '@/schema';
+import {
+  beginSignIn,
+  fetchGitHubUser,
+  getGitHubToken,
+  type GitHubUser,
+  signOut,
+} from './github-auth';
 import { fetchProjectFromGitHub, parseGitHubUrl } from './github-fetch';
 
 interface ConnectProjectProps {
@@ -19,13 +26,22 @@ export function ConnectProject({ open, onClose, onLoaded, onResetToFixture }: Co
   const [url, setUrl] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<GitHubUser | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (open) {
-      setStatus('idle');
-      setError(null);
-      requestAnimationFrame(() => inputRef.current?.focus());
+    if (!open) return;
+    setStatus('idle');
+    setError(null);
+    requestAnimationFrame(() => inputRef.current?.focus());
+    // Populate the signed-in state whenever the modal opens.
+    const token = getGitHubToken();
+    if (token) {
+      fetchGitHubUser(token)
+        .then(setUser)
+        .catch(() => setUser(null));
+    } else {
+      setUser(null);
     }
   }, [open]);
 
@@ -43,7 +59,8 @@ export function ConnectProject({ open, onClose, onLoaded, onResetToFixture }: Co
     setStatus('loading');
     setError(null);
     try {
-      const sources = await fetchProjectFromGitHub(ref);
+      const token = getGitHubToken();
+      const sources = await fetchProjectFromGitHub(ref, { token: token ?? undefined });
       const document = loadProjectFromSources(sources);
       // Build the originals map keyed by paths the emitters use.
       const originals: Record<string, string> = {
@@ -85,10 +102,52 @@ export function ConnectProject({ open, onClose, onLoaded, onResetToFixture }: Co
         <header className="flex flex-col gap-1">
           <h2 className="text-sm font-medium tracking-tight">Connect a shadcn project</h2>
           <p className="text-xs text-muted-foreground">
-            Paste a public GitHub URL. Mintcn reads components.json + your theme CSS + every
+            Paste a GitHub URL. Mintcn reads components.json + your theme CSS + every
             components/ui/*.tsx file, then swaps the workspace to your project.
           </p>
         </header>
+
+        <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-card p-2 text-[11px]">
+          {user ? (
+            <>
+              <div className="flex items-center gap-2 text-foreground">
+                <img
+                  src={user.avatar_url}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-5 w-5 rounded-full border border-border"
+                />
+                <span>
+                  Signed in as <span className="font-mono">{user.login}</span> · private repos
+                  unlocked
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  signOut();
+                  setUser(null);
+                }}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="text-muted-foreground">
+                Not signed in. Public repos work; private repos need auth.
+              </span>
+              <button
+                type="button"
+                onClick={beginSignIn}
+                className="rounded border border-border px-2 py-0.5 text-foreground hover:border-ring"
+              >
+                Sign in with GitHub
+              </button>
+            </>
+          )}
+        </div>
 
         <label className="flex flex-col gap-1">
           <span className="text-[11px] uppercase tracking-wide text-muted-foreground">GitHub URL</span>
@@ -111,8 +170,9 @@ export function ConnectProject({ open, onClose, onLoaded, onResetToFixture }: Co
           </p>
         ) : (
           <p className="text-[11px] text-muted-foreground">
-            Unauthenticated GitHub API is rate-limited to 60 requests / hour per IP. A single
-            connect uses one API call plus one raw fetch per file.
+            {user
+              ? 'Authenticated GitHub API is 5000 requests/hour. Private repos work if your account has access.'
+              : 'Unauthenticated GitHub API is 60 requests/hour per IP. Sign in above to raise it and unlock private repos.'}
           </p>
         )}
 

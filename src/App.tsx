@@ -11,6 +11,7 @@ import {
   DiffView,
   downloadProjectZip,
   downloadSingleFile,
+  consumeAuthFragment,
   encodeShareLink,
   ExportMenu,
   type ExportShape,
@@ -63,6 +64,21 @@ export default function App() {
     if (import.meta.env.DEV) {
       (window as unknown as { __MINTCN_STORE__: typeof useProjectStore }).__MINTCN_STORE__ =
         useProjectStore;
+    }
+    // If we just came back from a GitHub OAuth callback, stash the token and
+    // clean the URL. Fires before the shared-link hydration below so the two
+    // fragment consumers don't fight over `#`.
+    const authResult = consumeAuthFragment();
+    if (authResult && !authResult.ok) {
+      console.warn('[mintcn] github oauth callback failed:', authResult.reason);
+    }
+    // Surface auth_error (from the serverless callback's error path).
+    const authError = new URLSearchParams(window.location.search).get('auth_error');
+    if (authError) {
+      console.warn('[mintcn] github oauth error:', authError);
+      const url = new URL(window.location.href);
+      url.searchParams.delete('auth_error');
+      history.replaceState(null, '', url.toString());
     }
     // Rehydrate a shared theme from the URL hash. Runs after the fixture is
     // loaded so the shared slice (tokens/overrides/presets) overlays on top

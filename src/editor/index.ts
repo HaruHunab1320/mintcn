@@ -2,6 +2,7 @@ export * from './color-editor';
 export * from './color-wheel';
 export * from './command-palette';
 export * from './commands';
+export * from './github-auth';
 export * from './connect-project';
 export * from './diff-view';
 export * from './export-menu';
