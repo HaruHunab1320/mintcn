@@ -7,13 +7,16 @@ test('preview renders fixture components in light theme', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Mintcn' })).toBeVisible();
   await expect(page.getByText(/shadcn-app · slate · 46 components/)).toBeVisible();
 
-  // The canvas showroom sections are all visible.
+  const preview = page.locator('.mintcn-preview');
+
+  // The canvas showroom sections are all visible in the preview.
+  // Scoped because Canvas now also renders a chip filter whose labels
+  // overlap with the section titles (e.g. "Buttons").
   for (const heading of ['Buttons', 'Badges', 'Form controls', 'Cards & data display']) {
-    await expect(page.getByText(heading, { exact: true })).toBeVisible();
+    await expect(preview.getByText(heading, { exact: true })).toBeVisible();
   }
 
   // A representative component from each section, scoped to the preview.
-  const preview = page.locator('.mintcn-preview');
   await expect(preview.getByRole('button', { name: 'Primary' })).toBeVisible();
   await expect(preview.getByRole('button', { name: 'Destructive' })).toBeVisible();
   await expect(page.getByPlaceholder('you@example.com')).toBeVisible();

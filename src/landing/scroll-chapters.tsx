@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Chapter } from './chapters';
 
 interface ScrollChaptersProps {
   chapters: Chapter[];
+  activeId?: string;
+  onActiveChange?: (id: string) => void;
 }
 
 /**
@@ -11,10 +13,22 @@ interface ScrollChaptersProps {
  * viewport. Runs onEnter at most once per crossing so that gentle scroll
  * corrections don't spam store dispatches.
  */
-export function ScrollChapters({ chapters }: ScrollChaptersProps) {
+export function ScrollChapters({
+  chapters,
+  activeId: controlledActiveId,
+  onActiveChange,
+}: ScrollChaptersProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chapterRefs = useRef<Map<string, HTMLElement>>(new Map());
-  const [activeId, setActiveId] = useState<string>(chapters[0]?.id ?? '');
+  const [uncontrolledActiveId, setUncontrolledActiveId] = useState<string>(chapters[0]?.id ?? '');
+  const activeId = controlledActiveId ?? uncontrolledActiveId;
+  const setActiveId = useCallback(
+    (id: string) => {
+      if (onActiveChange) onActiveChange(id);
+      else setUncontrolledActiveId(id);
+    },
+    [onActiveChange],
+  );
   const firedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -45,7 +59,7 @@ export function ScrollChapters({ chapters }: ScrollChaptersProps) {
 
     for (const el of chapterRefs.current.values()) observer.observe(el);
     return () => observer.disconnect();
-  }, [chapters]);
+  }, [chapters, setActiveId]);
 
   return (
     <div

@@ -1,5 +1,5 @@
 import { ChevronRight, Mail, Settings, Star, Terminal, User } from 'lucide-react';
-import { type CSSProperties, type ReactNode, useState } from 'react';
+import { type CSSProperties, type ReactElement, type ReactNode, useState } from 'react';
 import { ChipFilter } from '@/editor/chip-filter';
 import type { ProjectDocument } from '@/schema';
 import {
@@ -441,6 +441,122 @@ function CalendarShowcase() {
   );
 }
 
+/**
+ * Motion showcase. Three animated elements bound to `--duration-*` and
+ * `--ease-*` via inline animation strings. When the store overrides those
+ * tokens (via setDuration / setEasing), the running animation picks up the
+ * new value on the next iteration — so scroll-driven token edits on the
+ * /learn page make the timing/curve visibly change.
+ */
+function ShowcaseAnimations() {
+  return (
+    <Section title="Motion">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="w-16">Pulse</span>
+          <span
+            className="inline-block h-4 w-4 rounded-full bg-primary"
+            style={{
+              animation:
+                'mintcn-demo-pulse var(--duration-normal, 400ms) var(--ease-out, ease-out) infinite alternate',
+            }}
+          />
+          <span className="font-mono text-[10px] text-muted-foreground/70">
+            var(--duration-normal) · var(--ease-out)
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="w-16">Slide</span>
+          <div className="relative h-4 w-56 rounded-full bg-muted">
+            <span
+              className="absolute inset-y-0 h-4 w-4 rounded-full bg-primary"
+              style={{
+                animation:
+                  'mintcn-demo-slide var(--duration-slow, 800ms) var(--ease-in-out, ease-in-out) infinite alternate',
+              }}
+            />
+          </div>
+          <span className="font-mono text-[10px] text-muted-foreground/70">
+            var(--duration-slow) · var(--ease-in-out)
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="w-16">Rotate</span>
+          <span
+            className="inline-block h-6 w-6 rounded bg-primary"
+            style={{
+              animation: 'mintcn-demo-rotate var(--duration-slow, 1200ms) linear infinite',
+            }}
+          />
+          <span className="font-mono text-[10px] text-muted-foreground/70">
+            var(--duration-slow) · linear
+          </span>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+const SHOWCASE_RENDERERS: Record<Exclude<ShowcaseFocus, 'all'>, () => ReactElement> = {
+  buttons: ButtonsShowcase,
+  badges: BadgesShowcase,
+  forms: FormControlsShowcase,
+  nav: NavigationShowcase,
+  data: DataDisplayShowcase,
+  feedback: FeedbackShowcase,
+  calendar: CalendarShowcase,
+  animations: ShowcaseAnimations,
+};
+
+/**
+ * Router between the stacked (default) and single-section preview layouts.
+ * Kept a component (not just JSX in the parent) so React can recycle the
+ * inner section instances across focus changes without unmounting.
+ */
+function FocusedShowcase({ focus }: { focus: ShowcaseFocus }) {
+  if (focus === 'all') {
+    return (
+      <div className="flex flex-col gap-10">
+        <ButtonsShowcase />
+        <BadgesShowcase />
+        <FormControlsShowcase />
+        <NavigationShowcase />
+        <DataDisplayShowcase />
+        <FeedbackShowcase />
+        <CalendarShowcase />
+        <ShowcaseAnimations />
+      </div>
+    );
+  }
+  const Renderer = SHOWCASE_RENDERERS[focus];
+  return <Renderer />;
+}
+
+export const SHOWCASE_FOCUSES = [
+  'all',
+  'buttons',
+  'badges',
+  'forms',
+  'nav',
+  'data',
+  'feedback',
+  'calendar',
+  'animations',
+] as const;
+export type ShowcaseFocus = (typeof SHOWCASE_FOCUSES)[number];
+
+const FOCUS_LABELS: Record<ShowcaseFocus, string> = {
+  all: 'All',
+  buttons: 'Buttons',
+  badges: 'Badges',
+  forms: 'Forms',
+  nav: 'Nav',
+  data: 'Data',
+  feedback: 'Feedback',
+  calendar: 'Calendar',
+  animations: 'Motion',
+};
+
 interface CanvasProps {
   document: ProjectDocument;
   /** Controlled theme. Falls back to local state when undefined. */
@@ -449,6 +565,19 @@ interface CanvasProps {
   /** Controlled force-state. Falls back to the useForceState hook when undefined. */
   forceState?: ForceState;
   onForceStateChange?: (state: ForceState) => void;
+  /**
+   * Which showcase sections to render. Default 'all' stacks every category
+   * (the editor's original behavior); any other value renders just that
+   * section, which the /learn page uses to keep the preview scroll-free.
+   */
+  focus?: ShowcaseFocus;
+  onFocusChange?: (focus: ShowcaseFocus) => void;
+  /**
+   * When true, expose a chip-filter row inside the canvas header letting
+   * the user pick a focus themselves. Default true; /learn hides it since
+   * it drives focus from the scroll position.
+   */
+  showFocusControl?: boolean;
 }
 
 /**
@@ -467,13 +596,18 @@ export function Canvas({
   onThemeChange,
   forceState: controlledForceState,
   onForceStateChange,
+  focus: controlledFocus,
+  onFocusChange,
+  showFocusControl = true,
 }: CanvasProps) {
   const [localTheme, setLocalTheme] = useState<PreviewTheme>('light');
   const [localForceState, setLocalForceState] = useForceState();
   const [device, setDevice] = useState<DevicePreset>('auto');
+  const [localFocus, setLocalFocus] = useState<ShowcaseFocus>('all');
 
   const theme = controlledTheme ?? localTheme;
   const forceState = controlledForceState ?? localForceState;
+  const focus = controlledFocus ?? localFocus;
   const setTheme = (next: PreviewTheme) => {
     if (onThemeChange) onThemeChange(next);
     else setLocalTheme(next);
@@ -481,6 +615,10 @@ export function Canvas({
   const setForceState = (next: ForceState) => {
     if (onForceStateChange) onForceStateChange(next);
     else setLocalForceState(next);
+  };
+  const setFocus = (next: ShowcaseFocus) => {
+    if (onFocusChange) onFocusChange(next);
+    else setLocalFocus(next);
   };
 
   const viewportStyle: CSSProperties =
@@ -499,6 +637,17 @@ export function Canvas({
         </div>
       </div>
 
+      {showFocusControl ? (
+        <ChipFilter
+          variant="rail"
+          leadingLabel="focus"
+          ariaLabel="Showcase focus"
+          active={focus}
+          onChange={setFocus}
+          options={SHOWCASE_FOCUSES.map((id) => ({ id, label: FOCUS_LABELS[id] }))}
+        />
+      ) : null}
+
       <section
         aria-label="Preview viewport"
         data-device-preset={device}
@@ -514,15 +663,7 @@ export function Canvas({
           className="min-h-[480px] p-8"
         >
           <OverrideProvider document={document}>
-            <div className="flex flex-col gap-10">
-              <ButtonsShowcase />
-              <BadgesShowcase />
-              <FormControlsShowcase />
-              <NavigationShowcase />
-              <DataDisplayShowcase />
-              <FeedbackShowcase />
-              <CalendarShowcase />
-            </div>
+            <FocusedShowcase focus={focus} />
           </OverrideProvider>
         </PreviewRoot>
       </section>

@@ -1,5 +1,5 @@
 import { fixtureOriginals, fixtureProject } from 'virtual:mintcn-fixture';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useProjectStore } from '@/store/project-store';
 import { buildChapters, type ChapterActions } from './chapters';
 import { PreviewShell } from './preview-shell';
@@ -28,6 +28,8 @@ export function Landing() {
   const setTokenColor = useProjectStore((s) => s.setTokenColor);
   const setVariantClass = useProjectStore((s) => s.setVariantClass);
   const setRadius = useProjectStore((s) => s.setRadius);
+  const setDuration = useProjectStore((s) => s.setDuration);
+  const setEasing = useProjectStore((s) => s.setEasing);
 
   // Reset on mount so the demo starts from the fixture, no matter where the
   // visitor came from. Reset on unmount so returning to /editor is clean.
@@ -45,16 +47,26 @@ export function Landing() {
       setTokenColor,
       setVariantClass,
       setRadius,
+      setDuration,
+      setEasing,
     }),
-    [load, applyTheme, setTokenColor, setVariantClass, setRadius],
+    [load, applyTheme, setTokenColor, setVariantClass, setRadius, setDuration, setEasing],
   );
 
   const chapters = useMemo(() => buildChapters(actions), [actions]);
+  const [activeChapterId, setActiveChapterId] = useState<string>(chapters[0]?.id ?? '');
+
+  const activeChapter = chapters.find((c) => c.id === activeChapterId);
+  const focus = activeChapter?.focus ?? 'all';
 
   return (
     <div className="grid h-screen grid-cols-1 bg-background text-foreground lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-      <ScrollChapters chapters={chapters} />
-      <PreviewShell />
+      <ScrollChapters
+        chapters={chapters}
+        activeId={activeChapterId}
+        onActiveChange={setActiveChapterId}
+      />
+      <PreviewShell focus={focus} />
     </div>
   );
 }

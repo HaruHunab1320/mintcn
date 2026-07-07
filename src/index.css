@@ -78,3 +78,33 @@
     transform: translateX(188px);
   }
 }
+
+/* Preview-canvas motion demo keyframes. Each is used by ShowcaseAnimations
+   with `--duration-*` and `--ease-*` piped in via inline `animation`
+   strings — so token overrides visibly change timing/curve. */
+@keyframes mintcn-demo-pulse {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0.55;
+  }
+}
+@keyframes mintcn-demo-slide {
+  from {
+    left: 0;
+  }
+  to {
+    left: calc(100% - 1rem);
+  }
+}
+@keyframes mintcn-demo-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

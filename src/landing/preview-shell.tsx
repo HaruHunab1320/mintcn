@@ -1,7 +1,17 @@
 import { useMemo, useState } from 'react';
 import { PaletteBar } from '@/editor';
-import { Canvas, type ForceState, type PreviewTheme, tokensToCssVars } from '@/renderer';
+import {
+  Canvas,
+  type ForceState,
+  type PreviewTheme,
+  type ShowcaseFocus,
+  tokensToCssVars,
+} from '@/renderer';
 import { useProjectStore } from '@/store/project-store';
+
+interface PreviewShellProps {
+  focus?: ShowcaseFocus;
+}
 
 /**
  * Right-half of the /learn page. Composed from the same building blocks the
@@ -12,7 +22,7 @@ import { useProjectStore } from '@/store/project-store';
  * toolbar. The chapters explain what those panels do; this pane is the
  * moving picture that proves it.
  */
-export function PreviewShell() {
+export function PreviewShell({ focus = 'all' }: PreviewShellProps) {
   const document = useProjectStore((s) => s.document);
   const [theme, setTheme] = useState<PreviewTheme>('light');
   const [forceState, setForceState] = useState<ForceState>('off');
@@ -48,6 +58,8 @@ export function PreviewShell() {
         onThemeChange={setTheme}
         forceState={forceState}
         onForceStateChange={setForceState}
+        focus={focus}
+        showFocusControl={false}
       />
     </section>
   );

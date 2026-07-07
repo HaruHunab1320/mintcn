@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { CURATED_THEMES, themeToSpec } from '@/editor/theme-gallery-data';
+import type { ShowcaseFocus } from '@/renderer';
 import type { ColorValue, SemanticColorToken, TokenState } from '@/schema';
 import type { Theme } from '@/store/project-store';
 
@@ -19,6 +20,8 @@ export interface ChapterActions {
     originalString: string,
   ) => void;
   setRadius: (value: string) => void;
+  setDuration: (name: string, value: string) => void;
+  setEasing: (name: string, value: string) => void;
 }
 
 export interface Chapter {
@@ -26,6 +29,8 @@ export interface Chapter {
   eyebrow?: string;
   title: string;
   body: ReactNode;
+  /** Which showcase section the right-hand preview should isolate for this chapter. */
+  focus?: ShowcaseFocus;
   /** Runs once each time the chapter scrolls into view. */
   onEnter?: () => void;
   /** Optional inline call-to-action rendered under the body. */
@@ -69,7 +74,14 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           <p className="text-sm text-muted-foreground">Scroll to see it in action ↓</p>
         </>
       ),
-      onEnter: actions.resetToFixture,
+      focus: 'all',
+      onEnter: () => {
+        actions.resetToFixture();
+        // Nudge motion tokens to a "medium/pleasant" baseline so the Motion
+        // chapter later has visibly different numbers to demo against.
+        actions.setDuration('normal', '400ms');
+        actions.setEasing('out', 'cubic-bezier(0.16, 1, 0.3, 1)');
+      },
       cta: { label: 'Open the editor →', href: '/' },
     },
     {
@@ -83,6 +95,7 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           point.
         </p>
       ),
+      focus: 'buttons',
       onEnter: () => actions.applyTheme(CYBERPUNK),
     },
     {
@@ -96,6 +109,7 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           same generator the palette bar uses.
         </p>
       ),
+      focus: 'data',
       onEnter: () => actions.applyTheme(MATRIX),
     },
     {
@@ -108,6 +122,7 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           per-token locks. Drop an image and Mintcn samples its dominant hues into a palette.
         </p>
       ),
+      focus: 'forms',
       onEnter: () => actions.applyTheme(AMBER),
     },
     {
@@ -121,6 +136,7 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           overlay before export.
         </p>
       ),
+      focus: 'buttons',
       onEnter: () => {
         actions.setVariantClass(
           'button',
@@ -133,8 +149,45 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
       },
     },
     {
-      id: 'diff',
+      id: 'motion-duration',
       eyebrow: 'Chapter 5',
+      title: 'Timing tokens, live.',
+      body: (
+        <p>
+          Durations and easing curves are just CSS custom properties. When you edit
+          <span className="font-mono"> --duration-normal </span> in the panel, every animation
+          driven by that token retimes on its next tick. Watch the motion strip on the right slow
+          down.
+        </p>
+      ),
+      focus: 'animations',
+      onEnter: () => {
+        actions.setDuration('normal', '1400ms');
+        actions.setDuration('slow', '2200ms');
+      },
+    },
+    {
+      id: 'motion-easing',
+      eyebrow: 'Chapter 6',
+      title: 'Bezier curves without the guesswork.',
+      body: (
+        <p>
+          A draggable cubic-bezier editor with a live preview dot. The curve token flows through
+          every element that uses <span className="font-mono">var(--ease-out)</span> — no hunting
+          through class strings.
+        </p>
+      ),
+      focus: 'animations',
+      onEnter: () => {
+        actions.setDuration('normal', '900ms');
+        actions.setDuration('slow', '1600ms');
+        actions.setEasing('out', 'cubic-bezier(0.68, -0.6, 0.32, 1.6)');
+        actions.setEasing('in-out', 'cubic-bezier(0.87, 0, 0.13, 1)');
+      },
+    },
+    {
+      id: 'diff',
+      eyebrow: 'Chapter 7',
       title: 'Every edit becomes a clean diff.',
       body: (
         <p>
@@ -142,10 +195,11 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           Copy the diff, or download a zip of just the changed files, and open the PR yourself.
         </p>
       ),
+      focus: 'all',
     },
     {
       id: 'yours',
-      eyebrow: 'Chapter 6',
+      eyebrow: 'Chapter 8',
       title: 'Point it at your repo.',
       body: (
         <p>
@@ -153,6 +207,7 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           overrides straight from your source — public or private.
         </p>
       ),
+      focus: 'nav',
       onEnter: actions.resetToFixture,
     },
     {
@@ -165,6 +220,7 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           server. Your token stays in your tab.
         </p>
       ),
+      focus: 'all',
       cta: { label: 'Open the editor →', href: '/' },
     },
   ];
