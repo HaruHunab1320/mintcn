@@ -77,6 +77,43 @@ test('applying a curated theme with shadows also swaps --shadow-* on the preview
   await expect(preview).toHaveAttribute('style', /--shadow-md:.*oklch/);
 });
 
+test('motion tokens retime real shadcn transitions (not just the demo strip)', async ({
+  page,
+}) => {
+  await page.goto('/learn');
+  const preview = page.locator('.mintcn-preview').first();
+  await expect(preview).toBeVisible();
+
+  // Scroll to the "timing tokens" chapter — it sets --duration-normal to 1400ms.
+  // Then continue to the "diff" chapter (focus: 'all') so real shadcn buttons
+  // render on the right and we can verify their computed transition-duration
+  // reflects the still-active motion tokens.
+  await page.locator('[data-chapter-id="motion-duration"]').evaluate((el) => {
+    el.scrollIntoView({ block: 'center' });
+  });
+  await expect
+    .poll(async () => {
+      const doc = await getDocument(page);
+      return doc?.tokens.animations?.durations.normal;
+    })
+    .toBe('1400ms');
+
+  await page.locator('[data-chapter-id="diff"]').evaluate((el) => {
+    el.scrollIntoView({ block: 'center' });
+  });
+
+  // Real shadcn Button — its Tailwind `transition-all` should now pick up
+  // the token via the scoped `.mintcn-preview *` rule.
+  await expect
+    .poll(async () =>
+      preview
+        .locator('button', { hasText: 'Primary' })
+        .first()
+        .evaluate((el) => window.getComputedStyle(el).transitionDuration),
+    )
+    .toBe('1.4s');
+});
+
 test('the / route still boots the editor (no regression)', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Colors' })).toBeVisible();

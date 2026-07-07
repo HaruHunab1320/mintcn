@@ -67,7 +67,7 @@ export function ScrollChapters({
   return (
     <div
       ref={containerRef}
-      className="flex flex-col overflow-y-auto bg-sidebar text-sidebar-foreground"
+      className="mintcn-chrome flex flex-col overflow-y-auto bg-sidebar text-sidebar-foreground"
     >
       <header className="flex items-center justify-between border-b border-sidebar-border bg-sidebar px-8 py-4">
         <a href="/" className="font-mono text-sm font-medium">

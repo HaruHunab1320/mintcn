@@ -79,6 +79,19 @@
   }
 }
 
+/* Scoped transition retiming for the live shadcn preview. Every Tailwind
+   `transition-*` utility inside the preview picks up `--duration-normal`
+   and `--ease-out` — so when the visitor edits those tokens on /learn
+   (or the panel in the editor), hovering an actual Button / Card / Tab
+   visibly changes speed and curve. Selector specificity (0,1,1) beats
+   Tailwind's own class rule (0,1,0) without needing !important. */
+.mintcn-preview *,
+.mintcn-preview *::before,
+.mintcn-preview *::after {
+  transition-duration: var(--duration-normal, 150ms);
+  transition-timing-function: var(--ease-out, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
 /* Preview-canvas motion demo keyframes. Each is used by ShowcaseAnimations
    with `--duration-*` and `--ease-*` piped in via inline `animation`
    strings — so token overrides visibly change timing/curve. */
