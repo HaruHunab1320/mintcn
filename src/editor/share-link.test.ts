@@ -1,20 +1,35 @@
 import { describe, expect, it } from 'vitest';
+import type { ProjectDocument } from '@/schema';
 import {
   applyShareableSlice,
   decodeShareLink,
   encodeShareLink,
   projectToShareableSlice,
 } from './share-link';
-import type { ProjectDocument } from '@/schema';
 
+/**
+ * Hand-rolled minimal document. Cast at the end because ProjectDocument
+ * includes fields we don't exercise here (themeImports, version, etc.);
+ * the share-link code only reads meta.name/baseColor + tokens + overrides
+ * + presets, so runtime behavior is what these tests validate.
+ */
 function baseDoc(): ProjectDocument {
-  return {
+  const doc = {
+    version: 1 as const,
     meta: {
       name: 'demo',
-      baseColor: 'zinc',
-      style: 'new-york',
+      baseColor: 'zinc' as const,
+      colorSpace: 'oklch' as const,
+      themeImports: ['tailwindcss'],
       config: {
-        tailwind: { css: 'app/globals.css', config: 'tailwind.config.ts', prefix: '' },
+        style: 'new-york',
+        tailwind: {
+          css: 'app/globals.css',
+          config: 'tailwind.config.ts',
+          prefix: '',
+          baseColor: 'zinc',
+          cssVariables: true,
+        },
         aliases: { components: '@/components', ui: '@/components/ui', utils: '@/lib/utils' },
       },
     },
@@ -57,8 +72,13 @@ function baseDoc(): ProjectDocument {
         dark: {} as never,
       } as never,
       radius: { base: '0.5rem' },
-      typography: { fontFamily: { sans: 'Inter, sans-serif', serif: 'Georgia', mono: 'monospace' } },
+      typography: {
+        fontFamily: { sans: 'Inter, sans-serif', serif: 'Georgia', mono: 'monospace' },
+        scale: [],
+      },
+      spacing: [],
       shadows: {},
+      borders: { width: {} },
     },
     components: [],
     overrides: [
@@ -69,6 +89,7 @@ function baseDoc(): ProjectDocument {
     ],
     presets: [],
   };
+  return doc as unknown as ProjectDocument;
 }
 
 describe('projectToShareableSlice', () => {
@@ -76,7 +97,7 @@ describe('projectToShareableSlice', () => {
     const slice = projectToShareableSlice(baseDoc());
     expect(slice.v).toBe(1);
     expect(slice.meta.name).toBe('demo');
-    expect(slice.tokens.colors.light.primary.value).toBe('oklch(0.5 0.2 200)');
+    expect((slice.tokens.colors.light.primary as { value: string }).value).toBe('oklch(0.5 0.2 200)');
     expect(slice.overrides).toHaveLength(1);
   });
 });
@@ -108,13 +129,13 @@ describe('applyShareableSlice', () => {
     const base = baseDoc();
     const slice = projectToShareableSlice(base);
     // Mutate the slice to prove it takes precedence.
-    slice.tokens.colors.light.primary.value = 'oklch(0.9 0.3 100)';
+    (slice.tokens.colors.light.primary as { value: string }).value = 'oklch(0.9 0.3 100)';
     slice.overrides = [];
 
     const applied = applyShareableSlice(base, slice);
-    expect(applied.tokens.colors.light.primary.value).toBe('oklch(0.9 0.3 100)');
+    expect((applied.tokens.colors.light.primary as { value: string }).value).toBe('oklch(0.9 0.3 100)');
     expect(applied.overrides).toHaveLength(0);
     expect(applied.components).toBe(base.components);
-    expect(applied.meta.style).toBe('new-york'); // preserved from base
+    expect(applied.meta.config.style).toBe('new-york'); // preserved from base
   });
 });

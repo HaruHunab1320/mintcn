@@ -4,8 +4,8 @@ import type { ProjectDocument } from '@/schema';
 import {
   beginSignIn,
   fetchGitHubUser,
-  getGitHubToken,
   type GitHubUser,
+  getGitHubToken,
   signOut,
 } from './github-auth';
 import { fetchProjectFromGitHub, parseGitHubUrl } from './github-fetch';
@@ -150,7 +150,9 @@ export function ConnectProject({ open, onClose, onLoaded, onResetToFixture }: Co
         </div>
 
         <label className="flex flex-col gap-1">
-          <span className="text-[11px] uppercase tracking-wide text-muted-foreground">GitHub URL</span>
+          <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            GitHub URL
+          </span>
           <input
             ref={inputRef}
             type="url"

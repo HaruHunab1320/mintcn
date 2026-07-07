@@ -33,7 +33,9 @@ function RowEditor({
 
   return (
     <div className="flex flex-col gap-2">
-      {names.length === 0 ? <p className="text-[11px] text-muted-foreground">No entries yet.</p> : null}
+      {names.length === 0 ? (
+        <p className="text-[11px] text-muted-foreground">No entries yet.</p>
+      ) : null}
       {names.map((name) => (
         <div key={name} className="flex flex-col gap-1">
           <div className="flex items-center justify-between text-[11px] text-muted-foreground">
@@ -115,7 +117,11 @@ function EasingRow({ name, value, onChange, onRemove }: EasingRowProps) {
               {preset.family} · {preset.label}
             </span>
           ) : null}
-          <button type="button" onClick={onRemove} className="text-muted-foreground hover:text-red-400">
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-muted-foreground hover:text-red-400"
+          >
             remove
           </button>
         </div>

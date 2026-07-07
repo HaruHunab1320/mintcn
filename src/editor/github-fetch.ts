@@ -202,11 +202,7 @@ export async function fetchProjectFromGitHub(
     }
     // Exactly one candidate, or the user's subdir happens to be one of them.
     effectiveSubdir = candidates.includes(effectiveSubdir) ? effectiveSubdir : candidates[0];
-    componentsJson = await fetchRepoFile(
-      ref,
-      joinPath(effectiveSubdir, 'components.json'),
-      token,
-    );
+    componentsJson = await fetchRepoFile(ref, joinPath(effectiveSubdir, 'components.json'), token);
   }
 
   const parsed = JSON.parse(componentsJson) as {

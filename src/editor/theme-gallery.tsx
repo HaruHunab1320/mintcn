@@ -3,7 +3,12 @@ import type { Preset } from '@/schema';
 import { useProjectStore } from '@/store/project-store';
 import { colorValueToCss } from './color-editor';
 import { parsePrimaryFamily, preloadFontFamilies } from './google-fonts';
-import { CURATED_THEMES, type CuratedTheme, type ThemeCategory, themeToSpec } from './theme-gallery-data';
+import {
+  CURATED_THEMES,
+  type CuratedTheme,
+  type ThemeCategory,
+  themeToSpec,
+} from './theme-gallery-data';
 
 interface ThemeGalleryProps {
   open: boolean;
@@ -42,7 +47,17 @@ interface CardProps {
   onRemove?: () => void;
 }
 
-function ThemeCard({ id, name, tagline, chip, swatches, fontHint, onClick, onHover, onRemove }: CardProps) {
+function ThemeCard({
+  id,
+  name,
+  tagline,
+  chip,
+  swatches,
+  fontHint,
+  onClick,
+  onHover,
+  onRemove,
+}: CardProps) {
   return (
     <div
       data-theme-id={id}
@@ -194,6 +209,9 @@ export function ThemeGallery({ open, onClose }: ThemeGalleryProps) {
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 pt-[8vh] backdrop-blur-sm"
       onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') onClose();
+      }}
     >
       <div
         className="flex w-full max-w-4xl flex-col gap-4 rounded-lg border border-border bg-card p-5 text-foreground shadow-2xl"
@@ -210,7 +228,6 @@ export function ThemeGallery({ open, onClose }: ThemeGalleryProps) {
               <div className="flex items-center gap-1">
                 <input
                   type="text"
-                  autoFocus
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   onKeyDown={(e) => {

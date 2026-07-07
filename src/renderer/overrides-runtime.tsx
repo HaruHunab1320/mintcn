@@ -48,10 +48,7 @@ interface OverrideLookupOptions {
  * Returns the class string to append when rendering a component instance.
  * Empty string when no override applies.
  */
-export function useOverrideClass(
-  componentId: string,
-  options: OverrideLookupOptions = {},
-): string {
+export function useOverrideClass(componentId: string, options: OverrideLookupOptions = {}): string {
   const document = useContext(OverrideContext);
   return useMemo(() => {
     if (!document) return '';
@@ -70,30 +67,30 @@ export function useOverrideClass(
   }, [document, componentId, options.variant, options.size]);
 }
 
-interface OverridableProps {
-  className?: string;
-  variant?: string;
-  size?: string;
-}
-
 /**
  * Wrap a shadcn component so its rendered className reflects the current
  * override delta. The wrapper is transparent — same props, same behavior,
  * just with the override string appended to className before the underlying
  * cn/tailwind-merge call runs.
+ *
+ * Types are intentionally loose here: shadcn components use cva-generated
+ * variant/size literal unions, which conflict with a `variant?: string`
+ * constraint under contravariance. Keeping the generic unconstrained and
+ * casting internally forwards the underlying component's full prop shape
+ * (children, refs, aria-*, etc.) to callers.
  */
-export function withOverride<P extends OverridableProps>(
-  Component: ComponentType<P>,
-  componentId: string,
-) {
+export function withOverride<P extends object>(Component: ComponentType<P>, componentId: string) {
   const Wrapped = (props: P) => {
+    const shape = props as { className?: string; variant?: string; size?: string };
     const override = useOverrideClass(componentId, {
-      variant: props.variant,
-      size: props.size,
+      variant: shape.variant,
+      size: shape.size,
     });
-    const merged = [props.className, override].filter(Boolean).join(' ');
-    return <Component {...props} className={merged || undefined} />;
+    const merged = [shape.className, override].filter(Boolean).join(' ');
+    // biome-ignore lint/suspicious/noExplicitAny: className is universal on shadcn components, but P doesn't statically prove it
+    const Passthrough = Component as ComponentType<any>;
+    return <Passthrough {...props} className={merged || undefined} />;
   };
   Wrapped.displayName = `Overridable(${componentId})`;
-  return Wrapped;
+  return Wrapped as ComponentType<P>;
 }

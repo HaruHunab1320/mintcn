@@ -8,9 +8,9 @@ import {
   AccordionTrigger,
 } from '../../fixtures/shadcn-app/components/ui/accordion';
 import {
-  Alert as RawAlert,
   AlertDescription,
   AlertTitle,
+  Alert as RawAlert,
 } from '../../fixtures/shadcn-app/components/ui/alert';
 import { Avatar, AvatarFallback } from '../../fixtures/shadcn-app/components/ui/avatar';
 import { Badge as RawBadge } from '../../fixtures/shadcn-app/components/ui/badge';
@@ -25,11 +25,11 @@ import {
 import { Button as RawButton } from '../../fixtures/shadcn-app/components/ui/button';
 import { Calendar } from '../../fixtures/shadcn-app/components/ui/calendar';
 import {
-  Card as RawCard,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Card as RawCard,
 } from '../../fixtures/shadcn-app/components/ui/card';
 import { Checkbox } from '../../fixtures/shadcn-app/components/ui/checkbox';
 import { Input as RawInput } from '../../fixtures/shadcn-app/components/ui/input';
@@ -70,6 +70,7 @@ const Alert = withOverride(RawAlert, 'alert');
 const Input = withOverride(RawInput, 'input');
 const Card = withOverride(RawCard, 'card');
 const Toggle = withOverride(RawToggle, 'toggle');
+
 import { type ForceState, useForceState } from './use-force-state';
 
 interface ThemeToggleProps {
@@ -133,7 +134,9 @@ function DeviceToggle({ value, onChange }: DeviceToggleProps) {
       className="inline-flex items-center gap-1 rounded-md border border-border p-1 text-xs"
       title="Tailwind's sm:/md:/lg: utilities respond to the browser viewport, not the canvas width — resize your window to test full responsive behavior."
     >
-      <span className="px-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">width</span>
+      <span className="px-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+        width
+      </span>
       {options.map((s) => (
         <button
           key={s}
@@ -161,7 +164,9 @@ function ForceStateToggle({ value, onChange }: ForceStateToggleProps) {
   const options: ForceState[] = ['off', 'hover', 'focus-visible', 'active', 'disabled'];
   return (
     <div className="inline-flex items-center gap-1 rounded-md border border-border p-1 text-xs">
-      <span className="px-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">force</span>
+      <span className="px-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+        force
+      </span>
       {options.map((s) => (
         <button
           key={s}
@@ -523,7 +528,7 @@ export function Canvas({
         </div>
       </div>
 
-      <div
+      <section
         aria-label="Preview viewport"
         data-device-preset={device}
         className={`overflow-auto min-w-[320px] max-w-full rounded-lg border border-border transition-all ${
@@ -549,7 +554,7 @@ export function Canvas({
             </div>
           </OverrideProvider>
         </PreviewRoot>
-      </div>
+      </section>
     </section>
   );
 }

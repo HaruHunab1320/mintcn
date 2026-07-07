@@ -29,8 +29,8 @@ export function TypographyPanel({ document }: TypographyPanelProps) {
   const fam = document.tokens.typography.fontFamily;
   const [pickerOpen, setPickerOpen] = useState<FontFamilyKey | null>(null);
 
-  const active = pickerOpen ? FAMILIES.find((f) => f.key === pickerOpen) ?? null : null;
-  const activePrimary = active ? parsePrimaryFamily(fam[active.key]) ?? undefined : undefined;
+  const active = pickerOpen ? (FAMILIES.find((f) => f.key === pickerOpen) ?? null) : null;
+  const activePrimary = active ? (parsePrimaryFamily(fam[active.key]) ?? undefined) : undefined;
 
   return (
     <PanelSection panelId="typography" title="Typography" description="Font-family stacks">
@@ -56,9 +56,7 @@ export function TypographyPanel({ document }: TypographyPanelProps) {
               className="flex items-center justify-between rounded border border-border bg-background px-2 py-1.5 text-left transition-colors hover:border-ring"
               style={{ fontFamily: stack }}
             >
-              <span className="truncate text-sm text-foreground">
-                {primary || 'Pick a font…'}
-              </span>
+              <span className="truncate text-sm text-foreground">{primary || 'Pick a font…'}</span>
               <span className="ml-2 shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">
                 {defaultCategory}
               </span>

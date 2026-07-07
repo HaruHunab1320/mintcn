@@ -60,9 +60,7 @@ export function beginSignIn(): void {
   window.location.href = url.toString();
 }
 
-export type AuthFragmentResult =
-  | { ok: true; token: string }
-  | { ok: false; reason: string };
+export type AuthFragmentResult = { ok: true; token: string } | { ok: false; reason: string };
 
 /**
  * Called at app boot. If the URL fragment carries an OAuth token, verify state

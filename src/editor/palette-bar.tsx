@@ -155,8 +155,7 @@ export function PaletteBar({ document }: PaletteBarProps) {
           </h2>
           <p className="text-[11px] text-muted-foreground">
             Click a swatch to lock · press{' '}
-            <kbd className="rounded border border-border px-1 text-[10px]">space</kbd> to
-            regenerate
+            <kbd className="rounded border border-border px-1 text-[10px]">space</kbd> to regenerate
             {lockedCount > 0 ? ` · ${lockedCount} locked` : ''}
           </p>
         </div>

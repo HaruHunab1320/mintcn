@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ComponentMeta, ProjectDocument } from '@/schema';
 import { useProjectStore } from '@/store/project-store';
-import { type Breakpoint, BREAKPOINTS, joinByBreakpoint, splitByBreakpoint } from '../breakpoints';
+import { BREAKPOINTS, type Breakpoint, joinByBreakpoint, splitByBreakpoint } from '../breakpoints';
 import { PanelSection } from '../panel-section';
 
 interface OverridePanelProps {
@@ -75,7 +75,11 @@ function VariantOptionEditor({
           {option}
         </span>
         {isOverridden ? (
-          <button type="button" onClick={reset} className="text-muted-foreground hover:text-foreground">
+          <button
+            type="button"
+            onClick={reset}
+            className="text-muted-foreground hover:text-foreground"
+          >
             reset
           </button>
         ) : (

@@ -7,20 +7,20 @@ import {
   buildShareUrl,
   CommandPalette,
   ConnectProject,
-  decodeShareLink,
+  consumeAuthFragment,
   DiffView,
+  decodeShareLink,
   downloadProjectZip,
   downloadSingleFile,
-  consumeAuthFragment,
-  encodeShareLink,
   ExportMenu,
   type ExportShape,
+  encodeShareLink,
   PaletteBar,
   type PanelId,
+  PropertyPanel,
   parsePrimaryFamily,
   preloadFontFamilies,
   projectToShareableSlice,
-  PropertyPanel,
   selectFilesForShape,
   ThemeGallery,
 } from '@/editor';
@@ -353,7 +353,11 @@ export default function App() {
                     : 'border-border text-foreground hover:border-ring'
               }`}
             >
-              {shareState === 'copied' ? '✓ Copied' : shareState === 'error' ? '✕ Failed' : '↗ Share'}
+              {shareState === 'copied'
+                ? '✓ Copied'
+                : shareState === 'error'
+                  ? '✕ Failed'
+                  : '↗ Share'}
             </button>
             <ExportMenu files={emitted} archiveName={archiveName} />
           </div>

@@ -94,7 +94,7 @@ export function FontPicker({
     const rows = listRef.current.querySelectorAll<HTMLElement>('[data-font-family]');
     for (const row of rows) observer.observe(row);
     return () => observer.disconnect();
-  }, [open, filtered]);
+  }, [open]);
 
   if (!open) return null;
 

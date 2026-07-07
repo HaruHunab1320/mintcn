@@ -30,9 +30,7 @@ function Swatch({ token, value, selected, onSelect, onOpenPopover }: SwatchProps
       }}
       title="Double-click to open the color picker"
       className={`group flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-xs transition-colors ${
-        selected
-          ? 'border-ring bg-primary/5'
-          : 'border-border hover:border-border'
+        selected ? 'border-ring bg-primary/5' : 'border-border hover:border-border'
       }`}
     >
       <span
@@ -98,7 +96,9 @@ function SwatchPopover({ state, theme, value, onClose }: SwatchPopoverProps) {
       style={{ top, left }}
     >
       <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Color picker</span>
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+          Color picker
+        </span>
         <button
           type="button"
           onClick={onClose}

@@ -47,7 +47,9 @@ function StopEditor({ keyframeName, stopIndex, stop, onRemove }: StopEditorProps
       <div className="flex flex-col gap-1 pl-3">
         {Object.entries(stop.declarations).map(([prop, value]) => (
           <div key={prop} className="flex items-center gap-1">
-            <span className="w-32 truncate font-mono text-[11px] text-muted-foreground">{prop}:</span>
+            <span className="w-32 truncate font-mono text-[11px] text-muted-foreground">
+              {prop}:
+            </span>
             <input
               type="text"
               aria-label={`stop ${stopIndex} ${prop}`}

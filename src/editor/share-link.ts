@@ -10,7 +10,7 @@ export interface ShareableSlice {
   v: 1;
   meta: {
     name: string;
-    baseColor: string;
+    baseColor: ProjectDocument['meta']['baseColor'];
   };
   tokens: TokenState;
   overrides: ComponentOverride[];

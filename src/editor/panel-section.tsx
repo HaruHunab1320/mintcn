@@ -29,7 +29,9 @@ export function PanelSection({ panelId, title, description, children }: PanelSec
       className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 shadow-sm"
     >
       <header className="flex flex-col gap-0.5">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground/90">{title}</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground/90">
+          {title}
+        </h3>
         {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
       </header>
       <div className="flex flex-col gap-2">{children}</div>
