@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 test('double-clicking a swatch opens a color picker popover anchored next to it', async ({
   page,
@@ -40,15 +41,8 @@ test('the popover editor writes to the document via its OKLCH text input', async
   await valueInput.fill('oklch(0.55 0.22 30)');
   await valueInput.blur();
 
-  const value = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { primary: { value: string } } } };
-    };
-    return doc.tokens.colors.light.primary.value;
-  });
+  const doc = await getDocument(page);
+  const value = (doc?.tokens.colors.light.primary as { value: string }).value;
   expect(value).toBe('oklch(0.55 0.22 30)');
 });
 

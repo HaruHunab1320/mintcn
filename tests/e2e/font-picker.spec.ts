@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 test('picking a font from the sans picker writes a matching stack to --font-sans', async ({
   page,
@@ -27,15 +28,8 @@ test('picking a font from the sans picker writes a matching stack to --font-sans
 
   await expect(dialog).toBeHidden();
 
-  const stack = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { typography: { fontFamily: { sans: string } } };
-    };
-    return doc.tokens.typography.fontFamily.sans;
-  });
+  const doc = await getDocument(page);
+  const stack = doc?.tokens.typography.fontFamily.sans;
   expect(stack).toBe('Manrope, sans-serif');
 });
 

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 const MINIMAL_COMPONENTS_JSON = JSON.stringify(
   {
@@ -232,15 +233,8 @@ test('Connect modal: successful fetch swaps in the document from the mocked repo
   await expect(page.getByText(/repo · slate · 1 component/)).toBeVisible();
 
   // The store's document is the newly-loaded one.
-  const componentIds = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      components: { id: string }[];
-    };
-    return doc.components.map((c) => c.id);
-  });
+  const doc = await getDocument(page);
+  const componentIds = doc?.components.map((c) => c.id) ?? [];
   expect(componentIds).toEqual(['button']);
 });
 

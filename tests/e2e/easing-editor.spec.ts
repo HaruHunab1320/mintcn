@@ -1,18 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 async function easingValue(page: import('@playwright/test').Page, name: string) {
-  return page.evaluate(
-    ({ name: n }) => {
-      const win = window as unknown as {
-        __MINTCN_STORE__: { getState: () => { document: unknown } };
-      };
-      const doc = win.__MINTCN_STORE__.getState().document as {
-        tokens: { animations?: { easings: Record<string, string> } };
-      };
-      return doc.tokens.animations?.easings[n];
-    },
-    { name },
-  );
+  const doc = await getDocument(page);
+  return doc?.tokens.animations?.easings[name];
 }
 
 test('easing preset dropdown swaps the stored value', async ({ page }) => {

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ChipFilter, type ChipOption } from './chip-filter';
 import {
   type FontCategory,
   type FontEntry,
@@ -6,6 +7,7 @@ import {
   loadFontFamily,
   preloadFontFamilies,
 } from './google-fonts';
+import { Modal } from './modal';
 
 interface FontPickerProps {
   open: boolean;
@@ -26,13 +28,13 @@ const CATEGORY_LABELS: Record<FontCategory | 'all', string> = {
   handwriting: 'Handwriting',
 };
 
-const CATEGORIES: (FontCategory | 'all')[] = [
-  'all',
-  'sans-serif',
-  'serif',
-  'monospace',
-  'display',
-  'handwriting',
+const CATEGORY_OPTIONS: ChipOption<FontCategory | 'all'>[] = [
+  { id: 'all', label: CATEGORY_LABELS.all },
+  { id: 'sans-serif', label: CATEGORY_LABELS['sans-serif'] },
+  { id: 'serif', label: CATEGORY_LABELS.serif },
+  { id: 'monospace', label: CATEGORY_LABELS.monospace },
+  { id: 'display', label: CATEGORY_LABELS.display },
+  { id: 'handwriting', label: CATEGORY_LABELS.handwriting },
 ];
 
 /**
@@ -59,14 +61,7 @@ export function FontPicker({
     requestAnimationFrame(() => searchRef.current?.focus());
     // Batch-load the featured set so the initial list has previews immediately.
     preloadFontFamilies(GOOGLE_FONTS.filter((f) => f.featured).map((f) => f.family));
-    // Document-level Escape handler — the modal's own onKeyDown gets swallowed
-    // by stopPropagation on the inner document wrapper.
-    const onEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onEsc);
-    return () => window.removeEventListener('keydown', onEsc);
-  }, [open, defaultCategory, onClose]);
+  }, [open, defaultCategory]);
 
   const filtered = useMemo<FontEntry[]>(() => {
     const q = query.trim().toLowerCase();
@@ -96,113 +91,85 @@ export function FontPicker({
     return () => observer.disconnect();
   }, [open]);
 
-  if (!open) return null;
-
   return (
-    <div
-      role="dialog"
-      aria-label="Font picker"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 pt-[10vh] backdrop-blur-sm"
-      onClick={onClose}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose();
-      }}
+    <Modal
+      open={open}
+      onClose={onClose}
+      ariaLabel="Font picker"
+      backdropAlignClass="pt-[10vh]"
+      surfaceClassName="flex w-full max-w-xl flex-col gap-3 rounded-lg border border-border bg-card p-4 text-foreground shadow-2xl"
     >
+      <input
+        ref={searchRef}
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search Google Fonts…"
+        aria-label="Search Google Fonts"
+        className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring"
+      />
+
+      <ChipFilter
+        options={CATEGORY_OPTIONS}
+        active={category}
+        onChange={setCategory}
+        ariaLabel="Font category"
+      />
+
       <div
-        className="flex w-full max-w-xl flex-col gap-3 rounded-lg border border-border bg-card p-4 text-foreground shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => {
-          // Let Escape bubble to the outer dialog's handler; keep everything
-          // else scoped so search input keystrokes don't trigger app shortcuts.
-          if (e.key !== 'Escape') e.stopPropagation();
-        }}
-        role="document"
+        ref={listRef}
+        className="max-h-[50vh] overflow-y-auto rounded-md border border-border bg-background"
       >
-        <input
-          ref={searchRef}
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search Google Fonts…"
-          aria-label="Search Google Fonts"
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring"
-        />
-
-        <div className="flex flex-wrap items-center gap-1">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setCategory(c)}
-              className={`rounded px-2 py-1 text-[11px] transition-colors ${
-                c === category
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {CATEGORY_LABELS[c]}
-            </button>
-          ))}
-        </div>
-
-        <div
-          ref={listRef}
-          className="max-h-[50vh] overflow-y-auto rounded-md border border-border bg-background"
-        >
-          {filtered.length === 0 ? (
-            <p className="p-4 text-center text-xs text-muted-foreground">No fonts match.</p>
-          ) : (
-            <ul className="flex flex-col">
-              {filtered.map((f) => {
-                const selected = currentFamily === f.family;
-                return (
-                  <li key={f.family}>
-                    <button
-                      type="button"
-                      data-font-family={f.family}
-                      onClick={() => {
-                        loadFontFamily(f.family);
-                        onPick(f.family, f.category);
-                      }}
-                      style={{ fontFamily: `"${f.family}", ${f.category}` }}
-                      className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-muted ${
-                        selected ? 'bg-muted' : ''
-                      }`}
-                    >
-                      <span>
-                        <span className="mr-2 text-base">{f.family}</span>
-                        <span className="text-xs text-muted-foreground">
-                          The quick brown fox jumps
-                        </span>
+        {filtered.length === 0 ? (
+          <p className="p-4 text-center text-xs text-muted-foreground">No fonts match.</p>
+        ) : (
+          <ul className="flex flex-col">
+            {filtered.map((f) => {
+              const selected = currentFamily === f.family;
+              return (
+                <li key={f.family}>
+                  <button
+                    type="button"
+                    data-font-family={f.family}
+                    onClick={() => {
+                      loadFontFamily(f.family);
+                      onPick(f.family, f.category);
+                    }}
+                    style={{ fontFamily: `"${f.family}", ${f.category}` }}
+                    className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-muted ${
+                      selected ? 'bg-muted' : ''
+                    }`}
+                  >
+                    <span>
+                      <span className="mr-2 text-base">{f.family}</span>
+                      <span className="text-xs text-muted-foreground">
+                        The quick brown fox jumps
                       </span>
-                      <span className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                        <span className="uppercase tracking-wide">
-                          {CATEGORY_LABELS[f.category]}
-                        </span>
-                        {selected ? <span className="text-foreground">✓</span> : null}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-          <span>
-            {filtered.length} font{filtered.length === 1 ? '' : 's'}
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-border px-3 py-1 text-xs text-foreground hover:border-ring"
-          >
-            Close
-          </button>
-        </div>
+                    </span>
+                    <span className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <span className="uppercase tracking-wide">{CATEGORY_LABELS[f.category]}</span>
+                      {selected ? <span className="text-foreground">✓</span> : null}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
-    </div>
+
+      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+        <span>
+          {filtered.length} font{filtered.length === 1 ? '' : 's'}
+        </span>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-md border border-border px-3 py-1 text-xs text-foreground hover:border-ring"
+        >
+          Close
+        </button>
+      </div>
+    </Modal>
   );
 }

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Preset } from '@/schema';
 import { useProjectStore } from '@/store/project-store';
+import { ChipFilter, type ChipOption } from './chip-filter';
 import { colorValueToCss } from './color-editor';
 import { parsePrimaryFamily, preloadFontFamilies } from './google-fonts';
+import { Modal } from './modal';
 import {
   CURATED_THEMES,
   type CuratedTheme,
@@ -170,12 +172,7 @@ export function ThemeGallery({ open, onClose }: ThemeGalleryProps) {
     setFilter('all');
     setSaveMode(false);
     setNewName('');
-    const onEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onEsc);
-    return () => window.removeEventListener('keydown', onEsc);
-  }, [open, onClose]);
+  }, [open]);
 
   const presets = document?.presets ?? [];
   const showCurated = filter === 'all' || filter !== 'mine';
@@ -198,146 +195,126 @@ export function ThemeGallery({ open, onClose }: ThemeGalleryProps) {
     setFilter('mine');
   };
 
-  if (!open) return null;
-
   const totalCards = (showCurated ? curated.length : 0) + (showPresets ? presets.length : 0);
 
   return (
-    <div
-      role="dialog"
-      aria-label="Theme gallery"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 pt-[8vh] backdrop-blur-sm"
-      onClick={onClose}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose();
-      }}
+    <Modal
+      open={open}
+      onClose={onClose}
+      ariaLabel="Theme gallery"
+      backdropAlignClass="pt-[8vh]"
+      surfaceClassName="flex w-full max-w-4xl flex-col gap-4 rounded-lg border border-border bg-card p-5 text-foreground shadow-2xl"
     >
-      <div
-        className="flex w-full max-w-4xl flex-col gap-4 rounded-lg border border-border bg-card p-5 text-foreground shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => {
-          if (e.key !== 'Escape') e.stopPropagation();
-        }}
-        role="document"
-      >
-        <header className="flex flex-col gap-1">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-medium tracking-tight">Theme gallery</h2>
-            {saveMode ? (
-              <div className="flex items-center gap-1">
-                <input
-                  type="text"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSave();
-                    if (e.key === 'Escape') {
-                      e.stopPropagation();
-                      setSaveMode(false);
-                    }
-                  }}
-                  placeholder="theme name"
-                  className="rounded border border-border bg-background px-2 py-1 font-mono text-[11px] text-foreground outline-none focus:border-input"
-                />
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={!newName.trim()}
-                  className="rounded border border-border px-2 py-1 text-[11px] text-foreground enabled:hover:border-ring disabled:opacity-40"
-                >
-                  save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSaveMode(false)}
-                  className="text-[11px] text-muted-foreground hover:text-foreground"
-                >
-                  cancel
-                </button>
-              </div>
-            ) : (
+      <header className="flex flex-col gap-1">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-medium tracking-tight">Theme gallery</h2>
+          {saveMode ? (
+            <div className="flex items-center gap-1">
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSave();
+                  if (e.key === 'Escape') {
+                    e.stopPropagation();
+                    setSaveMode(false);
+                  }
+                }}
+                placeholder="theme name"
+                className="rounded border border-border bg-background px-2 py-1 font-mono text-[11px] text-foreground outline-none focus:border-input"
+              />
               <button
                 type="button"
-                onClick={() => setSaveMode(true)}
-                disabled={!document}
-                className="rounded-md border border-border px-2 py-1 text-[11px] text-foreground enabled:hover:border-ring disabled:opacity-40"
-                title="Save the current theme so you can come back to it later"
+                onClick={handleSave}
+                disabled={!newName.trim()}
+                className="rounded border border-border px-2 py-1 text-[11px] text-foreground enabled:hover:border-ring disabled:opacity-40"
               >
-                ＋ Save current
+                save
               </button>
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Pick a curated theme or one of your saved themes — palette, radius, and font stacks
-            apply in one step.
-          </p>
-        </header>
-
-        <div className="flex flex-wrap items-center gap-1">
-          {FILTERS.map((f) => (
+              <button
+                type="button"
+                onClick={() => setSaveMode(false)}
+                className="text-[11px] text-muted-foreground hover:text-foreground"
+              >
+                cancel
+              </button>
+            </div>
+          ) : (
             <button
-              key={f}
               type="button"
-              onClick={() => setFilter(f)}
-              className={`rounded px-2 py-1 text-[11px] transition-colors ${
-                f === filter
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+              onClick={() => setSaveMode(true)}
+              disabled={!document}
+              className="rounded-md border border-border px-2 py-1 text-[11px] text-foreground enabled:hover:border-ring disabled:opacity-40"
+              title="Save the current theme so you can come back to it later"
             >
-              {FILTER_LABELS[f]}
-              {f === 'mine' && presets.length > 0 ? (
-                <span className="ml-1 text-[9px] opacity-70">{presets.length}</span>
-              ) : null}
+              ＋ Save current
             </button>
-          ))}
+          )}
         </div>
+        <p className="text-xs text-muted-foreground">
+          Pick a curated theme or one of your saved themes — palette, radius, and font stacks apply
+          in one step.
+        </p>
+      </header>
 
-        <div className="grid max-h-[65vh] grid-cols-1 gap-3 overflow-y-auto sm:grid-cols-2">
-          {showPresets && presets.length === 0 && filter === 'mine' ? (
-            <p className="col-span-full text-[11px] text-muted-foreground">
-              No saved themes yet. Click "Save current" up top to snapshot your current palette,
-              radius, and fonts.
-            </p>
-          ) : null}
-          {showPresets
-            ? presets.map((preset) => {
-                const props = presetCardProps(
-                  preset,
-                  () => {
-                    loadPreset(preset.id);
-                    onClose();
-                  },
-                  () => removePreset(preset.id),
-                );
-                return <ThemeCard key={props.id} {...props} />;
-              })
-            : null}
-          {showCurated
-            ? curated.map((theme) => {
-                const props = curatedCardProps(theme, () => {
-                  applyTheme(themeToSpec(theme));
+      <ChipFilter
+        options={FILTERS.map<ChipOption<Filter>>((f) => ({
+          id: f,
+          label: FILTER_LABELS[f],
+          suffix:
+            f === 'mine' && presets.length > 0 ? (
+              <span className="text-[9px] opacity-70">{presets.length}</span>
+            ) : null,
+        }))}
+        active={filter}
+        onChange={setFilter}
+        ariaLabel="Theme category"
+      />
+
+      <div className="grid max-h-[65vh] grid-cols-1 gap-3 overflow-y-auto sm:grid-cols-2">
+        {showPresets && presets.length === 0 && filter === 'mine' ? (
+          <p className="col-span-full text-[11px] text-muted-foreground">
+            No saved themes yet. Click "Save current" up top to snapshot your current palette,
+            radius, and fonts.
+          </p>
+        ) : null}
+        {showPresets
+          ? presets.map((preset) => {
+              const props = presetCardProps(
+                preset,
+                () => {
+                  loadPreset(preset.id);
                   onClose();
-                });
-                return <ThemeCard key={props.id} {...props} />;
-              })
-            : null}
-        </div>
-
-        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-          <span>
-            {totalCards} theme{totalCards === 1 ? '' : 's'}
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-border px-3 py-1 text-xs text-foreground hover:border-ring"
-          >
-            Close
-          </button>
-        </div>
+                },
+                () => removePreset(preset.id),
+              );
+              return <ThemeCard key={props.id} {...props} />;
+            })
+          : null}
+        {showCurated
+          ? curated.map((theme) => {
+              const props = curatedCardProps(theme, () => {
+                applyTheme(themeToSpec(theme));
+                onClose();
+              });
+              return <ThemeCard key={props.id} {...props} />;
+            })
+          : null}
       </div>
-    </div>
+
+      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+        <span>
+          {totalCards} theme{totalCards === 1 ? '' : 's'}
+        </span>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-md border border-border px-3 py-1 text-xs text-foreground hover:border-ring"
+        >
+          Close
+        </button>
+      </div>
+    </Modal>
   );
 }

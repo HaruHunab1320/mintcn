@@ -97,7 +97,9 @@ describe('projectToShareableSlice', () => {
     const slice = projectToShareableSlice(baseDoc());
     expect(slice.v).toBe(1);
     expect(slice.meta.name).toBe('demo');
-    expect((slice.tokens.colors.light.primary as { value: string }).value).toBe('oklch(0.5 0.2 200)');
+    expect((slice.tokens.colors.light.primary as { value: string }).value).toBe(
+      'oklch(0.5 0.2 200)',
+    );
     expect(slice.overrides).toHaveLength(1);
   });
 });
@@ -133,7 +135,9 @@ describe('applyShareableSlice', () => {
     slice.overrides = [];
 
     const applied = applyShareableSlice(base, slice);
-    expect((applied.tokens.colors.light.primary as { value: string }).value).toBe('oklch(0.9 0.3 100)');
+    expect((applied.tokens.colors.light.primary as { value: string }).value).toBe(
+      'oklch(0.9 0.3 100)',
+    );
     expect(applied.overrides).toHaveLength(0);
     expect(applied.components).toBe(base.components);
     expect(applied.meta.config.style).toBe('new-york'); // preserved from base

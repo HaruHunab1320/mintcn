@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 test('opening the gallery and clicking Matrix Terminal applies its palette', async ({ page }) => {
   await page.goto('/');
@@ -15,15 +16,8 @@ test('opening the gallery and clicking Matrix Terminal applies its palette', asy
   await expect(dialog).toHaveCount(0);
 
   // Matrix theme locks primary at ~145° hue. Read back --primary and verify.
-  const primary = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { primary: { value: string } } } };
-    };
-    return doc.tokens.colors.light.primary.value;
-  });
+  const doc = await getDocument(page);
+  const primary = (doc?.tokens.colors.light.primary as { value: string }).value;
   expect(primary).toContain('oklch(');
   expect(primary).toMatch(/14[0-9]/); // hue near 145
 });
@@ -88,22 +82,16 @@ test('save current + reopen: new preset shows as a Mine card and applies on clic
   await colorSection.locator('input[type="text"]').first().blur();
 
   await page.getByRole('button', { name: /Themes/ }).click();
-  // Match "Mine1" (filter chip with count badge) — not the "electric-lime Mine …" card.
-  await dialog.getByRole('button', { name: /^Mine\d*$/ }).click();
+  // Match the "Mine" filter chip (optionally followed by a count badge) — not the
+  // "electric-lime Mine Inter" card whose accessible name starts with the theme name.
+  await dialog.getByRole('button', { name: /^Mine( \d+)?$/ }).click();
   await dialog.locator('[data-theme-id^="preset-"]', { hasText: 'electric-lime' }).first().click();
 
   await expect
-    .poll(async () =>
-      page.evaluate(() => {
-        const win = window as unknown as {
-          __MINTCN_STORE__: { getState: () => { document: unknown } };
-        };
-        const doc = win.__MINTCN_STORE__.getState().document as {
-          tokens: { colors: { light: { primary: { value: string } } } };
-        };
-        return doc.tokens.colors.light.primary.value;
-      }),
-    )
+    .poll(async () => {
+      const d = await getDocument(page);
+      return (d?.tokens.colors.light.primary as { value: string }).value;
+    })
     .toBe('oklch(0.4 0.24 111)');
 });
 

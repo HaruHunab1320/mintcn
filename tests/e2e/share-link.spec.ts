@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 test('share button encodes the current doc into the URL hash', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
@@ -60,15 +61,8 @@ test('visiting a doc URL rehydrates the theme without editing anything', async (
   await fresh.goto(url);
   await fresh.waitForSelector('.mintcn-preview');
 
-  const hydrated = await fresh.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { primary: { value: string } } } };
-    };
-    return doc.tokens.colors.light.primary.value;
-  });
+  const freshDoc = await getDocument(fresh);
+  const hydrated = (freshDoc?.tokens.colors.light.primary as { value: string }).value;
   expect(hydrated).toBe('oklch(0.62 0.24 340)');
 });
 

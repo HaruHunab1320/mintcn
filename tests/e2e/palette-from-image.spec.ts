@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 /**
  * Programmatically feed a solid-color PNG through the palette bar's file
@@ -10,15 +11,8 @@ test('image sampling assigns a primary color derived from the image', async ({ p
   await page.goto('/');
   await page.waitForSelector('.mintcn-preview');
 
-  const originalPrimary = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { primary: { value: string } } } };
-    };
-    return doc.tokens.colors.light.primary.value;
-  });
+  const originalDoc = await getDocument(page);
+  const originalPrimary = (originalDoc?.tokens.colors.light.primary as { value: string }).value;
 
   // Inject a 40x40 vivid-blue PNG via the file input.
   await page.evaluate(async () => {
@@ -44,15 +38,8 @@ test('image sampling assigns a primary color derived from the image', async ({ p
 
   await page.waitForTimeout(500); // sampling is fast but async
 
-  const newPrimary = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { primary: { value: string } } } };
-    };
-    return doc.tokens.colors.light.primary.value;
-  });
+  const newDoc = await getDocument(page);
+  const newPrimary = (newDoc?.tokens.colors.light.primary as { value: string }).value;
 
   // The primary should have moved (not still the fixture default) and the
   // hue should have swung into the blue neighborhood (~260-270°).

@@ -1,5 +1,6 @@
 import { ChevronRight, Mail, Settings, Star, Terminal, User } from 'lucide-react';
 import { type CSSProperties, type ReactNode, useState } from 'react';
+import { ChipFilter } from '@/editor/chip-filter';
 import type { ProjectDocument } from '@/schema';
 import {
   Accordion,
@@ -80,22 +81,16 @@ interface ThemeToggleProps {
 
 function ThemeToggle({ theme, onChange }: ThemeToggleProps) {
   return (
-    <div className="inline-flex items-center gap-1 rounded-md border border-border p-1 text-xs">
-      {(['light', 'dark'] as const).map((t) => (
-        <button
-          key={t}
-          type="button"
-          onClick={() => onChange(t)}
-          className={`rounded px-2 py-1 transition-colors ${
-            theme === t
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {t}
-        </button>
-      ))}
-    </div>
+    <ChipFilter
+      variant="rail"
+      ariaLabel="Preview theme"
+      active={theme}
+      onChange={onChange}
+      options={[
+        { id: 'light', label: 'light' },
+        { id: 'dark', label: 'dark' },
+      ]}
+    />
   );
 }
 
@@ -130,28 +125,15 @@ interface DeviceToggleProps {
 function DeviceToggle({ value, onChange }: DeviceToggleProps) {
   const options: DevicePreset[] = ['auto', 'mobile', 'tablet', 'desktop'];
   return (
-    <div
-      className="inline-flex items-center gap-1 rounded-md border border-border p-1 text-xs"
+    <ChipFilter
+      variant="rail"
+      leadingLabel="width"
+      ariaLabel="Device preset"
       title="Tailwind's sm:/md:/lg: utilities respond to the browser viewport, not the canvas width — resize your window to test full responsive behavior."
-    >
-      <span className="px-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-        width
-      </span>
-      {options.map((s) => (
-        <button
-          key={s}
-          type="button"
-          onClick={() => onChange(s)}
-          className={`rounded px-2 py-1 transition-colors ${
-            value === s
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {DEVICE_LABELS[s]}
-        </button>
-      ))}
-    </div>
+      active={value}
+      onChange={onChange}
+      options={options.map((id) => ({ id, label: DEVICE_LABELS[id] }))}
+    />
   );
 }
 
@@ -163,25 +145,14 @@ interface ForceStateToggleProps {
 function ForceStateToggle({ value, onChange }: ForceStateToggleProps) {
   const options: ForceState[] = ['off', 'hover', 'focus-visible', 'active', 'disabled'];
   return (
-    <div className="inline-flex items-center gap-1 rounded-md border border-border p-1 text-xs">
-      <span className="px-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-        force
-      </span>
-      {options.map((s) => (
-        <button
-          key={s}
-          type="button"
-          onClick={() => onChange(s)}
-          className={`rounded px-2 py-1 transition-colors ${
-            value === s
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {FORCE_STATE_LABELS[s]}
-        </button>
-      ))}
-    </div>
+    <ChipFilter
+      variant="rail"
+      leadingLabel="force"
+      ariaLabel="Force pseudo-state"
+      active={value}
+      onChange={onChange}
+      options={options.map((id) => ({ id, label: FORCE_STATE_LABELS[id] }))}
+    />
   );
 }
 

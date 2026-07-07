@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 test('a color-editor swatch shows the OKLCH color wheel', async ({ page }) => {
   await page.goto('/');
@@ -31,15 +32,8 @@ test('clicking a point on the wheel updates --primary in the document', async ({
     .first()
     .click();
 
-  const before = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { primary: { value: string } } } };
-    };
-    return doc.tokens.colors.light.primary.value;
-  });
+  const doc = await getDocument(page);
+  const before = (doc?.tokens.colors.light.primary as { value: string }).value;
 
   const wheel = colorSection.locator('[data-mintcn-color-wheel]').first();
   await wheel.scrollIntoViewIfNeeded();
@@ -51,16 +45,9 @@ test('clicking a point on the wheel updates --primary in the document', async ({
   await wheel.click({ position: { x: box.width * 0.85, y: box.height * 0.15 } });
 
   await expect
-    .poll(async () =>
-      page.evaluate(() => {
-        const win = window as unknown as {
-          __MINTCN_STORE__: { getState: () => { document: unknown } };
-        };
-        const doc = win.__MINTCN_STORE__.getState().document as {
-          tokens: { colors: { light: { primary: { value: string } } } };
-        };
-        return doc.tokens.colors.light.primary.value;
-      }),
-    )
+    .poll(async () => {
+      const next = await getDocument(page);
+      return (next?.tokens.colors.light.primary as { value: string }).value;
+    })
     .not.toBe(before);
 });

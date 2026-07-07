@@ -1,15 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 async function primaryValue(page: import('@playwright/test').Page) {
-  return page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { primary: { value: string } } } };
-    };
-    return doc.tokens.colors.light.primary.value;
-  });
+  const doc = await getDocument(page);
+  return (doc?.tokens.colors.light.primary as { value: string }).value;
 }
 
 test('undo button rolls back a token edit; redo replays it', async ({ page }) => {

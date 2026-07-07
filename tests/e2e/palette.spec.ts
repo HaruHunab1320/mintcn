@@ -1,25 +1,15 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 test('palette generate rewrites the unlocked key tokens and respects locks', async ({ page }) => {
   await page.goto('/');
 
   // Read the initial primary value out of the store.
-  const initial = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: {
-        colors: {
-          light: { primary: { value: string }; background: { value: string } };
-        };
-      };
-    };
-    return {
-      primary: doc.tokens.colors.light.primary.value,
-      background: doc.tokens.colors.light.background.value,
-    };
-  });
+  const initialDoc = await getDocument(page);
+  const initial = {
+    primary: (initialDoc?.tokens.colors.light.primary as { value: string }).value,
+    background: (initialDoc?.tokens.colors.light.background as { value: string }).value,
+  };
 
   // Lock primary so it survives the regenerate.
   await page.getByRole('button', { name: /primary swatch/ }).click();
@@ -28,22 +18,11 @@ test('palette generate rewrites the unlocked key tokens and respects locks', asy
   // Generate. Strategy defaults to monochromatic.
   await page.getByRole('button', { name: '↻ Generate' }).click();
 
-  const after = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: {
-        colors: {
-          light: { primary: { value: string }; background: { value: string } };
-        };
-      };
-    };
-    return {
-      primary: doc.tokens.colors.light.primary.value,
-      background: doc.tokens.colors.light.background.value,
-    };
-  });
+  const afterDoc = await getDocument(page);
+  const after = {
+    primary: (afterDoc?.tokens.colors.light.primary as { value: string }).value,
+    background: (afterDoc?.tokens.colors.light.background as { value: string }).value,
+  };
 
   // Locked primary preserved
   expect(after.primary).toBe(initial.primary);
@@ -54,29 +33,15 @@ test('palette generate rewrites the unlocked key tokens and respects locks', asy
 test('spacebar regenerates the palette when focus is outside an input', async ({ page }) => {
   await page.goto('/');
 
-  const initialBackground = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { background: { value: string } } } };
-    };
-    return doc.tokens.colors.light.background.value;
-  });
+  const initialDoc = await getDocument(page);
+  const initialBackground = (initialDoc?.tokens.colors.light.background as { value: string }).value;
 
   // Focus the body (clicking the canvas heading) then press space.
   await page.getByRole('heading', { name: 'Preview' }).click();
   await page.keyboard.press('Space');
 
-  const after = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { background: { value: string } } } };
-    };
-    return doc.tokens.colors.light.background.value;
-  });
+  const afterDoc = await getDocument(page);
+  const after = (afterDoc?.tokens.colors.light.background as { value: string }).value;
 
   expect(after).not.toBe(initialBackground);
 });

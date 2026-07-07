@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 test('device preview toggle constrains the preview to the chosen width', async ({ page }) => {
   await page.goto('/');
@@ -57,18 +58,8 @@ test('override panel: editing the md breakpoint tab writes a prefixed class into
   await mdTextarea.fill('h-10 px-6');
   await mdTextarea.blur();
 
-  const override = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      overrides: {
-        componentId: string;
-        variants?: Record<string, Record<string, { replaceWith?: string }>>;
-      }[];
-    };
-    return doc.overrides.find((o) => o.componentId === 'button');
-  });
+  const doc = await getDocument(page);
+  const override = doc?.overrides.find((o) => o.componentId === 'button');
   // The join canonicalizes base classes first, then md-prefixed.
   expect(override?.variants?.size?.sm.replaceWith).toBe('h-8 px-4 md:h-10 md:px-6');
 });

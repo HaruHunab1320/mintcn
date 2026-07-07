@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 test('save preset → mutate tokens → load preset restores them', async ({ page }) => {
   await page.goto('/');
@@ -33,18 +34,11 @@ test('save preset → mutate tokens → load preset restores them', async ({ pag
   // Load the preset and assert everything snapped back.
   await presetSection.getByRole('button', { name: 'load' }).click();
 
-  const snapshot = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: {
-        radius: { base: string };
-        colors: { light: { primary: { value: string } } };
-      };
-    };
-    return { radius: doc.tokens.radius.base, primary: doc.tokens.colors.light.primary.value };
-  });
+  const doc = await getDocument(page);
+  const snapshot = {
+    radius: doc?.tokens.radius.base,
+    primary: (doc?.tokens.colors.light.primary as { value: string }).value,
+  };
   expect(snapshot.radius).toBe('0.625rem');
   expect(snapshot.primary).toBe('oklch(0.208 0.042 265.755)');
 });

@@ -1,19 +1,13 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 test('reset button discards a token edit and restores the baseline', async ({ page }) => {
   await page.goto('/');
   await page.waitForSelector('.mintcn-preview');
 
   // Baseline: read the fixture's default --primary from the app root style.
-  const baseline = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: { tokens: unknown } } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { primary: { value: string } } } };
-    };
-    return doc.tokens.colors.light.primary.value;
-  });
+  const baselineDoc = await getDocument(page);
+  const baseline = (baselineDoc?.tokens.colors.light.primary as { value: string }).value;
   expect(baseline).toBeTruthy();
 
   // Mutate --primary via the Colors panel text field.
@@ -29,15 +23,8 @@ test('reset button discards a token edit and restores the baseline', async ({ pa
   await primaryText.fill('oklch(0.55 0.22 30)');
   await primaryText.blur();
 
-  const afterEdit = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { primary: { value: string } } } };
-    };
-    return doc.tokens.colors.light.primary.value;
-  });
+  const afterEditDoc = await getDocument(page);
+  const afterEdit = (afterEditDoc?.tokens.colors.light.primary as { value: string }).value;
   expect(afterEdit).toBe('oklch(0.55 0.22 30)');
 
   // Reset — accept the confirm dialog automatically.
@@ -45,17 +32,10 @@ test('reset button discards a token edit and restores the baseline', async ({ pa
   await page.getByRole('button', { name: /Reset/, exact: false }).click();
 
   await expect
-    .poll(async () =>
-      page.evaluate(() => {
-        const win = window as unknown as {
-          __MINTCN_STORE__: { getState: () => { document: unknown } };
-        };
-        const doc = win.__MINTCN_STORE__.getState().document as {
-          tokens: { colors: { light: { primary: { value: string } } } };
-        };
-        return doc.tokens.colors.light.primary.value;
-      }),
-    )
+    .poll(async () => {
+      const d = await getDocument(page);
+      return (d?.tokens.colors.light.primary as { value: string }).value;
+    })
     .toBe(baseline);
 });
 
@@ -77,15 +57,8 @@ test('reset does nothing when the user cancels the confirm dialog', async ({ pag
   page.once('dialog', (d) => d.dismiss());
   await page.getByRole('button', { name: /Reset/, exact: false }).click();
 
-  const stillEdited = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { primary: { value: string } } } };
-    };
-    return doc.tokens.colors.light.primary.value;
-  });
+  const stillEditedDoc = await getDocument(page);
+  const stillEdited = (stillEditedDoc?.tokens.colors.light.primary as { value: string }).value;
   expect(stillEdited).toBe('oklch(0.4 0.15 200)');
 });
 

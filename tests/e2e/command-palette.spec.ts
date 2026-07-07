@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 test('Cmd+K opens the command palette', async ({ page }) => {
   await page.goto('/');
@@ -33,29 +34,15 @@ test('typing filters commands and Enter invokes Jump to Keyframes', async ({ pag
 test('Generate palette command rolls the unlocked tokens', async ({ page }) => {
   await page.goto('/');
 
-  const before = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { background: { value: string } } } };
-    };
-    return doc.tokens.colors.light.background.value;
-  });
+  const docBefore = await getDocument(page);
+  const before = (docBefore?.tokens.colors.light.background as { value: string }).value;
 
   await page.getByRole('button', { name: /Search/ }).click();
   await page.getByRole('textbox', { name: 'Search commands' }).fill('generate');
   await page.keyboard.press('Enter');
 
-  const after = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { colors: { light: { background: { value: string } } } };
-    };
-    return doc.tokens.colors.light.background.value;
-  });
+  const docAfter = await getDocument(page);
+  const after = (docAfter?.tokens.colors.light.background as { value: string }).value;
 
   expect(after).not.toBe(before);
 });

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { getDocument } from './helpers';
 
 test('property panel renders all sections', async ({ page }) => {
   await page.goto('/');
@@ -29,19 +30,8 @@ test('keyframe panel: editing a stop declaration flows into the document', async
   await opacityInput.fill('0.3');
   await opacityInput.blur();
 
-  const value = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: {
-        animations?: {
-          keyframes?: Record<string, { stops: { declarations: Record<string, string> }[] }>;
-        };
-      };
-    };
-    return doc.tokens.animations?.keyframes?.['mintcn-pulse']?.stops[1]?.declarations.opacity;
-  });
+  const doc = await getDocument(page);
+  const value = doc?.tokens.animations?.keyframes?.['mintcn-pulse']?.stops[1]?.declarations.opacity;
   expect(value).toBe('0.3');
 });
 
@@ -72,15 +62,8 @@ test('animation panel: setDuration adds a new --duration-* entry to the document
   );
   await addButton.click();
 
-  const value = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { animations?: { durations: Record<string, string> } };
-    };
-    return doc.tokens.animations?.durations.xfast;
-  });
+  const doc = await getDocument(page);
+  const value = doc?.tokens.animations?.durations.xfast;
   expect(value).toBe('150ms');
 });
 
@@ -125,15 +108,8 @@ test('typography panel: editing --font-sans flows into the document', async ({ p
   await sansInput.fill('"Geist", sans-serif');
   await sansInput.blur();
 
-  const fontFamily = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      tokens: { typography: { fontFamily: { sans: string } } };
-    };
-    return doc.tokens.typography.fontFamily.sans;
-  });
+  const doc = await getDocument(page);
+  const fontFamily = doc?.tokens.typography.fontFamily.sans;
   expect(fontFamily).toBe('"Geist", sans-serif');
 });
 
@@ -155,18 +131,8 @@ test('override panel: editing button size.sm flows into the document as a replac
   await smTextarea.fill('h-8 rounded-md px-5 text-lg');
   await smTextarea.blur();
 
-  const override = await page.evaluate(() => {
-    const win = window as unknown as {
-      __MINTCN_STORE__: { getState: () => { document: unknown } };
-    };
-    const doc = win.__MINTCN_STORE__.getState().document as {
-      overrides: {
-        componentId: string;
-        variants?: Record<string, Record<string, { replaceWith?: string }>>;
-      }[];
-    };
-    return doc.overrides.find((o) => o.componentId === 'button');
-  });
+  const doc = await getDocument(page);
+  const override = doc?.overrides.find((o) => o.componentId === 'button');
   expect(override?.variants?.size?.sm.replaceWith).toBe('h-8 rounded-md px-5 text-lg');
 });
 

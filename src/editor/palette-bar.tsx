@@ -11,6 +11,7 @@ import {
 } from '@/palette';
 import type { ColorValue, ProjectDocument } from '@/schema';
 import { useProjectStore } from '@/store/project-store';
+import { colorValueToCss } from './color-editor';
 import { parseOklch } from './oklch';
 
 const STRATEGY_OPTIONS: { id: PaletteStrategy; label: string }[] = [
@@ -20,12 +21,6 @@ const STRATEGY_OPTIONS: { id: PaletteStrategy; label: string }[] = [
   { id: 'triadic', label: 'Triadic' },
   { id: 'random', label: 'Random' },
 ];
-
-function colorValueToCss(value: ColorValue): string {
-  if (value.kind === 'literal') return value.value;
-  const basePercent = Math.round((1 - value.mix.amount) * 100);
-  return `color-mix(in ${value.mix.space}, var(--${value.from}) ${basePercent}%, ${value.mix.toward})`;
-}
 
 function colorValueToTriplet(value: ColorValue): OklchTriplet | null {
   if (value.kind !== 'literal') return null;
