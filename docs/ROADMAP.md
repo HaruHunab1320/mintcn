@@ -1,6 +1,6 @@
 # Roadmap
 
-Post-MVP iteration plan. The MVP loop (edit → diff → export) is shipped; this doc captures the next wave of work that makes Tincture friendlier and more powerful for the first-time visitor.
+Post-MVP iteration plan. The MVP loop (edit → diff → export) is shipped; this doc captures the next wave of work that makes Mintcn friendlier and more powerful for the first-time visitor.
 
 Live status:
 - ✅ MVP (M0–M6, presets, export shapes, acceptance script)
@@ -17,7 +17,7 @@ Live status:
 
 ## 1. Palette system (Coolers-style)
 
-The single biggest "oh nice" moment for a first-time visitor. Picking colors is the hardest first task — opening Tincture today drops you in front of 32 swatches with no obvious starting point.
+The single biggest "oh nice" moment for a first-time visitor. Picking colors is the hardest first task — opening Mintcn today drops you in front of 32 swatches with no obvious starting point.
 
 ### UX
 A bar across the top of the canvas with five swatches for the key tokens:
@@ -100,12 +100,12 @@ By time-to-delight for a first-time visitor:
 4. **Undo/redo** — table-stakes for an editor. Zustand temporal middleware exists. ~1-2 hours.
 5. **Easing curve editor** — fun + necessary for the animation story to feel complete. ~half a day.
 6. **Image → palette** — pairs with #1 once it's live.
-7. **Connect-your-own-project** — turns Tincture from a demo into a real tool. Own milestone.
+7. **Connect-your-own-project** — turns Mintcn from a demo into a real tool. Own milestone.
 
 ---
 
 ## 4. Deferred / open questions
 
 - **Live preview of overrides** — shipped for `Button` + `Badge` via a `withOverride` HOC that appends the delta to `className` and lets shadcn's own `tailwind-merge` resolve conflicts. Two follow-ups: (a) extend the wrapper to Input/Card/Alert/other cva-heavy components; (b) structural rewrites (element type / wrapper changes) still only surface on export — needs a genuinely different mechanism.
-- **Tincture-flavored shadcn registry** (Path B from M6 design) — alongside vanilla shadcn, ship parameterized component versions that consume state tokens for live retroactive propagation. Phase 2 territory; only justified once we have real user demand.
+- **Mintcn-flavored shadcn registry** (Path B from M6 design) — alongside vanilla shadcn, ship parameterized component versions that consume state tokens for live retroactive propagation. Phase 2 territory; only justified once we have real user demand.
 - **Theme gallery + URL-shareable themes** — ✅ URL-shareable half shipped (`#doc=` hash rehydrates). Gallery still open: needs a curated home for themes people have shared. Cheap follow-up.

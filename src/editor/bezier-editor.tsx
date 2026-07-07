@@ -195,7 +195,7 @@ export function BezierEditor({ bezier, onChange, cssValue }: BezierEditorProps) 
           key={replayKey}
           className="absolute inset-y-0 left-0 w-3 rounded-full bg-primary"
           style={{
-            animation: `tincture-bezier-preview 1200ms ${cssValue} 0s 1 forwards`,
+            animation: `mintcn-bezier-preview 1200ms ${cssValue} 0s 1 forwards`,
           }}
         />
       </div>

@@ -173,7 +173,7 @@ test('Connect modal: successful fetch swaps in the document from the mocked repo
   page,
 }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   // Mock the GitHub contents API + raw file endpoints for the fake repo.
   await page.route('https://raw.githubusercontent.com/mock/repo/main/components.json', (route) =>
@@ -234,9 +234,9 @@ test('Connect modal: successful fetch swaps in the document from the mocked repo
   // The store's document is the newly-loaded one.
   const componentIds = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       components: { id: string }[];
     };
     return doc.components.map((c) => c.id);

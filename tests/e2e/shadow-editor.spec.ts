@@ -12,9 +12,9 @@ test('shadow editor: changing the blur field updates the document shadow string'
 
   const value = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { shadows: Record<string, string> };
     };
     return doc.tokens.shadows.sm;
@@ -31,9 +31,9 @@ test('shadow editor: adding a layer appends it to the serialized value', async (
 
   const value = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { shadows: Record<string, string> };
     };
     return doc.tokens.shadows.sm;
@@ -50,9 +50,9 @@ test('shadow editor: inset toggle flips the inset keyword on serialization', asy
 
   const value = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { shadows: Record<string, string> };
     };
     return doc.tokens.shadows.sm;

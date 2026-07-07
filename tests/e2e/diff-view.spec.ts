@@ -15,13 +15,13 @@ test('editing a token surfaces a globals.css diff', async ({ page }) => {
   // Mutate --primary via the store so the test stays focused on the diff path.
   await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: {
+      __MINTCN_STORE__: {
         getState: () => {
           setTokenColor: (theme: string, token: string, value: unknown) => void;
         };
       };
     };
-    win.__TINCTURE_STORE__.getState().setTokenColor('light', 'primary', {
+    win.__MINTCN_STORE__.getState().setTokenColor('light', 'primary', {
       kind: 'literal',
       space: 'oklch',
       value: 'oklch(0.7 0.2 30)',

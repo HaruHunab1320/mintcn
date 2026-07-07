@@ -51,7 +51,7 @@ export function loadProjectFromSources(sources: ProjectSources): ProjectDocument
       components.push(parseComponentSource({ id, registryName: id, filePath, sourceText }));
     } catch (err) {
       // Skip and continue — better to import a partial project than to fail.
-      console.warn(`[tincture] skipping unparseable component ${filePath}:`, err);
+      console.warn(`[mintcn] skipping unparseable component ${filePath}:`, err);
     }
   }
 

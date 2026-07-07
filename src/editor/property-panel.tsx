@@ -16,7 +16,7 @@ interface PropertyPanelProps {
 
 export function PropertyPanel({ document }: PropertyPanelProps) {
   return (
-    <aside className="flex w-[340px] shrink-0 flex-col gap-3 overflow-y-auto p-4 text-foreground">
+    <aside className="flex w-[340px] shrink-0 flex-col gap-3 overflow-y-auto bg-sidebar p-4 text-sidebar-foreground shadow-sm">
       <PresetPanel document={document} />
       <ColorPanel document={document} />
       <RadiusPanel document={document} />

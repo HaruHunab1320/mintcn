@@ -124,6 +124,6 @@ The decision rubric for the audit:
 - Does the foundation let the emitted code stay closer to plain CSS (less JS, cleaner diffs)?
 - Does it preserve accessible semantics out of the box?
 - Is its component coverage enough that users can actually adopt it without falling back to hand-writing primitives?
-- Does targeting it widen or narrow the set of real codebases Tincture can edit today?
+- Does targeting it widen or narrow the set of real codebases Mintcn can edit today?
 
 Answer those against real components — not vibes — before committing to a direction.

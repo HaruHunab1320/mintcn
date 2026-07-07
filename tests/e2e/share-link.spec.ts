@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('share button encodes the current doc into the URL hash', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   // Edit --primary so the shared doc differs from the fixture.
   const colorSection = page
@@ -37,7 +37,7 @@ test('visiting a doc URL rehydrates the theme without editing anything', async (
 }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   const colorSection = page
     .locator('section')
@@ -58,13 +58,13 @@ test('visiting a doc URL rehydrates the theme without editing anything', async (
   // Open the shared URL in a fresh page — should hydrate the same --primary.
   const fresh = await context.newPage();
   await fresh.goto(url);
-  await fresh.waitForSelector('.tincture-preview');
+  await fresh.waitForSelector('.mintcn-preview');
 
   const hydrated = await fresh.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { primary: { value: string } } } };
     };
     return doc.tokens.colors.light.primary.value;
@@ -78,7 +78,7 @@ test('a malformed doc hash logs a warning but still boots on the fixture', async
     if (msg.type() === 'warning') warnings.push(msg.text());
   });
   await page.goto('/#doc=1gTHIS_IS_NOT_VALID_BASE64_GZIP');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   // App still boots — Colors panel visible.
   await expect(page.getByRole('heading', { name: 'Colors' })).toBeVisible();

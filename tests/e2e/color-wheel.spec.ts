@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('a color-editor swatch shows the OKLCH color wheel', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   const colorSection = page
     .locator('section')
@@ -13,14 +13,14 @@ test('a color-editor swatch shows the OKLCH color wheel', async ({ page }) => {
     .first()
     .click();
 
-  const wheel = colorSection.locator('[data-tincture-color-wheel]').first();
+  const wheel = colorSection.locator('[data-mintcn-color-wheel]').first();
   await expect(wheel).toBeVisible();
   await expect(wheel).toHaveAttribute('width', '168');
 });
 
 test('clicking a point on the wheel updates --primary in the document', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   const colorSection = page
     .locator('section')
@@ -33,15 +33,15 @@ test('clicking a point on the wheel updates --primary in the document', async ({
 
   const before = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { primary: { value: string } } } };
     };
     return doc.tokens.colors.light.primary.value;
   });
 
-  const wheel = colorSection.locator('[data-tincture-color-wheel]').first();
+  const wheel = colorSection.locator('[data-mintcn-color-wheel]').first();
   await wheel.scrollIntoViewIfNeeded();
   // Click at a definite off-center position (0.85, 0.15) → high chroma, hue ~ 45°.
   // Using Playwright's locator.click(position) so coords are relative to the
@@ -54,9 +54,9 @@ test('clicking a point on the wheel updates --primary in the document', async ({
     .poll(async () =>
       page.evaluate(() => {
         const win = window as unknown as {
-          __TINCTURE_STORE__: { getState: () => { document: unknown } };
+          __MINTCN_STORE__: { getState: () => { document: unknown } };
         };
-        const doc = win.__TINCTURE_STORE__.getState().document as {
+        const doc = win.__MINTCN_STORE__.getState().document as {
           tokens: { colors: { light: { primary: { value: string } } } };
         };
         return doc.tokens.colors.light.primary.value;

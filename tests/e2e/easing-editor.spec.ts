@@ -4,9 +4,9 @@ async function easingValue(page: import('@playwright/test').Page, name: string) 
   return page.evaluate(
     ({ name: n }) => {
       const win = window as unknown as {
-        __TINCTURE_STORE__: { getState: () => { document: unknown } };
+        __MINTCN_STORE__: { getState: () => { document: unknown } };
       };
-      const doc = win.__TINCTURE_STORE__.getState().document as {
+      const doc = win.__MINTCN_STORE__.getState().document as {
         tokens: { animations?: { easings: Record<string, string> } };
       };
       return doc.tokens.animations?.easings[n];
@@ -17,7 +17,7 @@ async function easingValue(page: import('@playwright/test').Page, name: string) 
 
 test('easing preset dropdown swaps the stored value', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
   expect(await easingValue(page, 'out')).toBe('cubic-bezier(0.16, 1, 0.3, 1)');
 
   const preset = page.getByLabel('easing out preset', { exact: true });
@@ -30,7 +30,7 @@ test('bezier editor: dragging a handle changes the emitted cubic-bezier tuple', 
   page,
 }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   const initial = await easingValue(page, 'out');
   expect(initial).toBe('cubic-bezier(0.16, 1, 0.3, 1)');
@@ -50,16 +50,16 @@ test('bezier editor: dragging a handle changes the emitted cubic-bezier tuple', 
 
 test('keyword easings do not expose the bezier editor', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   // Force the "out" row to a keyword value.
   await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: {
+      __MINTCN_STORE__: {
         getState: () => { setEasing: (name: string, value: string) => void };
       };
     };
-    win.__TINCTURE_STORE__.getState().setEasing('out', 'ease-in-out');
+    win.__MINTCN_STORE__.getState().setEasing('out', 'ease-in-out');
   });
 
   // Expand — the bezier editor should NOT appear.

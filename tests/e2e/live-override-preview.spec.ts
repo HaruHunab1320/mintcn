@@ -4,9 +4,9 @@ test('editing button size.sm updates the preview button live, no export required
   page,
 }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
-  const smButton = page.locator('.tincture-preview button[data-size="sm"]').first();
+  const smButton = page.locator('.mintcn-preview button[data-size="sm"]').first();
   await expect(smButton).toBeVisible();
   const originalHeight = await smButton.evaluate((el) => window.getComputedStyle(el).height);
 
@@ -29,9 +29,9 @@ test('editing button size.sm updates the preview button live, no export required
 
 test('editing an alert variant flows through to the preview alert live', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
-  const alert = page.locator('.tincture-preview [data-slot="alert"]').first();
+  const alert = page.locator('.mintcn-preview [data-slot="alert"]').first();
   await expect(alert).toBeVisible();
 
   const overridesSection = page
@@ -55,14 +55,14 @@ test('the app root sits on the shadcn background token (not a hardcoded neutral)
   page,
 }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   // The App root should have the shadcn --background CSS var installed (via
   // the hoisted token style) — meaning `bg-background` on the same element
   // resolves to the same value as PreviewRoot sees. Sanity-check by reading
   // --background off the root.
   const bg = await page
-    .locator('.tincture-chrome')
+    .locator('.mintcn-chrome')
     .first()
     .evaluate((el) => getComputedStyle(el).getPropertyValue('--background').trim());
   expect(bg.length).toBeGreaterThan(0);
@@ -70,14 +70,14 @@ test('the app root sits on the shadcn background token (not a hardcoded neutral)
 
 test('the app root wears the dot-grid chrome class; preview does not', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
-  await expect(page.locator('.tincture-chrome')).toHaveCount(1);
-  await expect(page.locator('.tincture-preview.tincture-chrome')).toHaveCount(0);
+  await expect(page.locator('.mintcn-chrome')).toHaveCount(1);
+  await expect(page.locator('.mintcn-preview.mintcn-chrome')).toHaveCount(0);
 
   // Chrome class actually installs the radial-gradient background image.
   const bgImage = await page
-    .locator('.tincture-chrome')
+    .locator('.mintcn-chrome')
     .first()
     .evaluate((el) => window.getComputedStyle(el).backgroundImage);
   expect(bgImage).toMatch(/radial-gradient/);

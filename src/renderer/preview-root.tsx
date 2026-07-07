@@ -30,7 +30,7 @@ export function PreviewRoot({
   forceState = 'off',
 }: PreviewRootProps) {
   const vars = tokensToCssVars(document, theme);
-  const composed = ['tincture-preview', theme === 'dark' ? 'dark' : '', className]
+  const composed = ['mintcn-preview', theme === 'dark' ? 'dark' : '', className]
     .filter(Boolean)
     .join(' ');
   return (

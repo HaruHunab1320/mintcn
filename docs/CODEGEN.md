@@ -69,7 +69,7 @@ Keep key order stable and match the user's existing indentation.
 
 ## 3. `registry-item.json` (`emit-registry-item`) — the shadcn-native export
 
-This is the format that makes Tincture a first-class citizen of the shadcn ecosystem: a registry item can be installed into any project with `npx shadcn add`, and a collection of them can be served as a private namespaced registry. Emit theme edits via `cssVars` and any extra rules via `css`.
+This is the format that makes Mintcn a first-class citizen of the shadcn ecosystem: a registry item can be installed into any project with `npx shadcn add`, and a collection of them can be served as a private namespaced registry. Emit theme edits via `cssVars` and any extra rules via `css`.
 
 ```json
 {

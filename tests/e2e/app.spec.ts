@@ -4,7 +4,7 @@ test('preview renders fixture components in light theme', async ({ page }) => {
   await page.goto('/');
 
   // Header shows the project metadata pulled from ingest.
-  await expect(page.getByRole('heading', { name: 'Tincture' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Mintcn' })).toBeVisible();
   await expect(page.getByText(/shadcn-app · slate · 46 components/)).toBeVisible();
 
   // The canvas showroom sections are all visible.
@@ -13,7 +13,7 @@ test('preview renders fixture components in light theme', async ({ page }) => {
   }
 
   // A representative component from each section, scoped to the preview.
-  const preview = page.locator('.tincture-preview');
+  const preview = page.locator('.mintcn-preview');
   await expect(preview.getByRole('button', { name: 'Primary' })).toBeVisible();
   await expect(preview.getByRole('button', { name: 'Destructive' })).toBeVisible();
   await expect(page.getByPlaceholder('you@example.com')).toBeVisible();
@@ -24,7 +24,7 @@ test('preview renders fixture components in light theme', async ({ page }) => {
 test('preview-root receives token CSS variables and respects light/dark', async ({ page }) => {
   await page.goto('/');
 
-  const preview = page.locator('.tincture-preview');
+  const preview = page.locator('.mintcn-preview');
   await expect(preview).toBeVisible();
 
   // The fixture's --primary in light theme is oklch(0.208 0.042 265.755).
@@ -43,20 +43,20 @@ test('preview-root receives token CSS variables and respects light/dark', async 
 
 test('a programmatic token mutation visibly restyles the preview', async ({ page }) => {
   await page.goto('/');
-  const preview = page.locator('.tincture-preview');
+  const preview = page.locator('.mintcn-preview');
   await expect(preview).toBeVisible();
 
   // Mutate the store directly to prove the fast-path subscription works.
   await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__?: {
+      __MINTCN_STORE__?: {
         getState: () => {
           setTokenColor: (theme: string, token: string, value: unknown) => void;
         };
       };
     };
-    if (!win.__TINCTURE_STORE__) throw new Error('store not exposed on window');
-    win.__TINCTURE_STORE__.getState().setTokenColor('light', 'primary', {
+    if (!win.__MINTCN_STORE__) throw new Error('store not exposed on window');
+    win.__MINTCN_STORE__.getState().setTokenColor('light', 'primary', {
       kind: 'literal',
       space: 'oklch',
       value: 'oklch(0.7 0.2 30)',

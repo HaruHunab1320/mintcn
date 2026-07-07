@@ -2,14 +2,14 @@ import { expect, test } from '@playwright/test';
 
 test('reset button discards a token edit and restores the baseline', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   // Baseline: read the fixture's default --primary from the app root style.
   const baseline = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: { tokens: unknown } } };
+      __MINTCN_STORE__: { getState: () => { document: { tokens: unknown } } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { primary: { value: string } } } };
     };
     return doc.tokens.colors.light.primary.value;
@@ -31,9 +31,9 @@ test('reset button discards a token edit and restores the baseline', async ({ pa
 
   const afterEdit = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { primary: { value: string } } } };
     };
     return doc.tokens.colors.light.primary.value;
@@ -48,9 +48,9 @@ test('reset button discards a token edit and restores the baseline', async ({ pa
     .poll(async () =>
       page.evaluate(() => {
         const win = window as unknown as {
-          __TINCTURE_STORE__: { getState: () => { document: unknown } };
+          __MINTCN_STORE__: { getState: () => { document: unknown } };
         };
-        const doc = win.__TINCTURE_STORE__.getState().document as {
+        const doc = win.__MINTCN_STORE__.getState().document as {
           tokens: { colors: { light: { primary: { value: string } } } };
         };
         return doc.tokens.colors.light.primary.value;
@@ -61,7 +61,7 @@ test('reset button discards a token edit and restores the baseline', async ({ pa
 
 test('reset does nothing when the user cancels the confirm dialog', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   const colorSection = page
     .locator('section')
@@ -79,9 +79,9 @@ test('reset does nothing when the user cancels the confirm dialog', async ({ pag
 
   const stillEdited = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { primary: { value: string } } } };
     };
     return doc.tokens.colors.light.primary.value;
@@ -91,7 +91,7 @@ test('reset does nothing when the user cancels the confirm dialog', async ({ pag
 
 test('header wears a solid bg-card so the dot grid does not show through it', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   const header = page.locator('header').first();
   const bgColor = await header.evaluate((el) => window.getComputedStyle(el).backgroundColor);

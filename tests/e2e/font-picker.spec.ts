@@ -4,7 +4,7 @@ test('picking a font from the sans picker writes a matching stack to --font-sans
   page,
 }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   // Prevent actual network calls to Google Fonts CSS — this test only cares
   // about the in-app data flow, not the actual typography rendering.
@@ -29,9 +29,9 @@ test('picking a font from the sans picker writes a matching stack to --font-sans
 
   const stack = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { typography: { fontFamily: { sans: string } } };
     };
     return doc.tokens.typography.fontFamily.sans;
@@ -41,7 +41,7 @@ test('picking a font from the sans picker writes a matching stack to --font-sans
 
 test('picker category filter narrows the visible fonts', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
   await page.route('https://fonts.googleapis.com/**', (route) =>
     route.fulfill({ status: 200, contentType: 'text/css', body: '' }),
   );
@@ -63,7 +63,7 @@ test('picker category filter narrows the visible fonts', async ({ page }) => {
 
 test('Escape closes the font picker', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
   await page.route('https://fonts.googleapis.com/**', (route) =>
     route.fulfill({ status: 200, contentType: 'text/css', body: '' }),
   );

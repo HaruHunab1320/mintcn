@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 
-const FIXTURE_VIRTUAL_ID = 'virtual:tincture-fixture';
+const FIXTURE_VIRTUAL_ID = 'virtual:mintcn-fixture';
 const RESOLVED_FIXTURE_ID = `\0${FIXTURE_VIRTUAL_ID}`;
 const FIXTURE_ROOT = path.resolve(__dirname, 'fixtures/shadcn-app');
 
@@ -15,7 +15,7 @@ const FIXTURE_ROOT = path.resolve(__dirname, 'fixtures/shadcn-app');
  */
 function fixtureProjectPlugin(): Plugin {
   return {
-    name: 'tincture:fixture-project',
+    name: 'mintcn:fixture-project',
     resolveId(id) {
       if (id === FIXTURE_VIRTUAL_ID) return RESOLVED_FIXTURE_ID;
       return null;

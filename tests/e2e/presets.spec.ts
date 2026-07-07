@@ -14,14 +14,14 @@ test('save preset → mutate tokens → load preset restores them', async ({ pag
   // Mutate tokens via the store so the test stays focused on the preset path.
   await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: {
+      __MINTCN_STORE__: {
         getState: () => {
           setRadius: (value: string) => void;
           setTokenColor: (theme: string, token: string, value: unknown) => void;
         };
       };
     };
-    const s = win.__TINCTURE_STORE__.getState();
+    const s = win.__MINTCN_STORE__.getState();
     s.setRadius('1.25rem');
     s.setTokenColor('light', 'primary', {
       kind: 'literal',
@@ -35,9 +35,9 @@ test('save preset → mutate tokens → load preset restores them', async ({ pag
 
   const snapshot = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: {
         radius: { base: string };
         colors: { light: { primary: { value: string } } };

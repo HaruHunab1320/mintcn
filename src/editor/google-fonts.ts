@@ -108,7 +108,7 @@ export function loadFontFamily(family: string): void {
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = href;
-  link.setAttribute('data-tincture-font', family);
+  link.setAttribute('data-mintcn-font', family);
   document.head.appendChild(link);
 }
 
@@ -124,7 +124,7 @@ export function preloadFontFamilies(families: string[]): void {
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = href;
-  link.setAttribute('data-tincture-font-batch', fresh.join(','));
+  link.setAttribute('data-mintcn-font-batch', fresh.join(','));
   document.head.appendChild(link);
 }
 

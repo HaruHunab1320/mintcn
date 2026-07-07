@@ -48,7 +48,7 @@
   }
 }
 
-/* Subtle dot grid overlaid on Tincture's own chrome — panels, toolbars,
+/* Subtle dot grid overlaid on Mintcn's own chrome — panels, toolbars,
    gutters. The base color comes from `bg-background` (the shadcn token),
    so editing tokens actually shifts the whole app. Elevated surfaces
    (panels, header) use `bg-card`, giving visible separation from the
@@ -57,7 +57,7 @@
 
    Foreground uses `currentColor` masking so on light themes the dots
    pick up whatever the theme's foreground contrast should be. */
-.tincture-chrome {
+.mintcn-chrome {
   background-image: radial-gradient(
     circle at 1px 1px,
     color-mix(in oklab, currentColor 10%, transparent) 1px,
@@ -70,7 +70,7 @@
 /* Bezier editor preview dot — the CSS timing function is applied inline so
    we can swap the curve without re-parsing. The strip is 200px wide, dot
    is 12px, so we translate by ~188px to hit the far edge. */
-@keyframes tincture-bezier-preview {
+@keyframes mintcn-bezier-preview {
   from {
     transform: translateX(0);
   }

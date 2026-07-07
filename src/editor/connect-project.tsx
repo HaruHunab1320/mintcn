@@ -85,7 +85,7 @@ export function ConnectProject({ open, onClose, onLoaded, onResetToFixture }: Co
         <header className="flex flex-col gap-1">
           <h2 className="text-sm font-medium tracking-tight">Connect a shadcn project</h2>
           <p className="text-xs text-muted-foreground">
-            Paste a public GitHub URL. Tincture reads components.json + your theme CSS + every
+            Paste a public GitHub URL. Mintcn reads components.json + your theme CSS + every
             components/ui/*.tsx file, then swaps the workspace to your project.
           </p>
         </header>

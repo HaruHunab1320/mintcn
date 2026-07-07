@@ -6,9 +6,9 @@ test('palette generate rewrites the unlocked key tokens and respects locks', asy
   // Read the initial primary value out of the store.
   const initial = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: {
         colors: {
           light: { primary: { value: string }; background: { value: string } };
@@ -30,9 +30,9 @@ test('palette generate rewrites the unlocked key tokens and respects locks', asy
 
   const after = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: {
         colors: {
           light: { primary: { value: string }; background: { value: string } };
@@ -56,9 +56,9 @@ test('spacebar regenerates the palette when focus is outside an input', async ({
 
   const initialBackground = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { background: { value: string } } } };
     };
     return doc.tokens.colors.light.background.value;
@@ -70,9 +70,9 @@ test('spacebar regenerates the palette when focus is outside an input', async ({
 
   const after = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { background: { value: string } } } };
     };
     return doc.tokens.colors.light.background.value;

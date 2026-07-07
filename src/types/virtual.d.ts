@@ -1,4 +1,4 @@
-declare module 'virtual:tincture-fixture' {
+declare module 'virtual:mintcn-fixture' {
   import type { ProjectDocument } from '@/schema';
   export const fixtureProject: ProjectDocument;
   /**

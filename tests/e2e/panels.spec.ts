@@ -21,8 +21,8 @@ test('property panel renders all sections', async ({ page }) => {
 
 test('keyframe panel: editing a stop declaration flows into the document', async ({ page }) => {
   await page.goto('/');
-  // The fixture ships `tincture-pulse` (3 stops). Expand it.
-  await page.getByRole('button', { name: /@keyframes tincture-pulse/ }).click();
+  // The fixture ships `mintcn-pulse` (3 stops). Expand it.
+  await page.getByRole('button', { name: /@keyframes mintcn-pulse/ }).click();
 
   // Stop 1 (the 50% stop) has opacity: 0.5. Change it to 0.3.
   const opacityInput = page.getByLabel('stop 1 opacity', { exact: true });
@@ -31,16 +31,16 @@ test('keyframe panel: editing a stop declaration flows into the document', async
 
   const value = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: {
         animations?: {
           keyframes?: Record<string, { stops: { declarations: Record<string, string> }[] }>;
         };
       };
     };
-    return doc.tokens.animations?.keyframes?.['tincture-pulse']?.stops[1]?.declarations.opacity;
+    return doc.tokens.animations?.keyframes?.['mintcn-pulse']?.stops[1]?.declarations.opacity;
   });
   expect(value).toBe('0.3');
 });
@@ -48,7 +48,7 @@ test('keyframe panel: editing a stop declaration flows into the document', async
 test('state panel: editing disabled-opacity changes force-disabled rendering', async ({ page }) => {
   await page.goto('/');
   const primary = page
-    .locator('.tincture-preview [data-slot="button"][data-variant="default"]')
+    .locator('.mintcn-preview [data-slot="button"][data-variant="default"]')
     .first();
 
   const disabledInput = page.getByLabel('disabled-opacity', { exact: true });
@@ -74,9 +74,9 @@ test('animation panel: setDuration adds a new --duration-* entry to the document
 
   const value = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { animations?: { durations: Record<string, string> } };
     };
     return doc.tokens.animations?.durations.xfast;
@@ -86,7 +86,7 @@ test('animation panel: setDuration adds a new --duration-* entry to the document
 
 test('color panel: editing primary updates the preview', async ({ page }) => {
   await page.goto('/');
-  const preview = page.locator('.tincture-preview');
+  const preview = page.locator('.mintcn-preview');
   await expect(preview).toBeVisible();
 
   const colorSection = page
@@ -106,7 +106,7 @@ test('color panel: editing primary updates the preview', async ({ page }) => {
 
 test('radius panel: editing --radius updates the preview', async ({ page }) => {
   await page.goto('/');
-  const preview = page.locator('.tincture-preview');
+  const preview = page.locator('.mintcn-preview');
   const radiusSection = page
     .locator('section')
     .filter({ has: page.getByRole('heading', { name: 'Radius' }) });
@@ -127,9 +127,9 @@ test('typography panel: editing --font-sans flows into the document', async ({ p
 
   const fontFamily = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { typography: { fontFamily: { sans: string } } };
     };
     return doc.tokens.typography.fontFamily.sans;
@@ -157,9 +157,9 @@ test('override panel: editing button size.sm flows into the document as a replac
 
   const override = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       overrides: {
         componentId: string;
         variants?: Record<string, Record<string, { replaceWith?: string }>>;

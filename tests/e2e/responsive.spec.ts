@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('device preview toggle constrains the preview to the chosen width', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   const viewport = page.locator('[data-device-preset]');
   await expect(viewport).toBeVisible();
@@ -59,9 +59,9 @@ test('override panel: editing the md breakpoint tab writes a prefixed class into
 
   const override = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       overrides: {
         componentId: string;
         variants?: Record<string, Record<string, { replaceWith?: string }>>;

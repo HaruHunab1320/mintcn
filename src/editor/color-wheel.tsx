@@ -128,7 +128,7 @@ export function ColorWheel({ l, c, h, onChange }: ColorWheelProps) {
         onPointerUp={handleUp}
         onPointerCancel={handleUp}
         className="h-full w-full cursor-crosshair touch-none rounded-full"
-        data-tincture-color-wheel
+        data-mintcn-color-wheel
       />
       {/* Crosshair — a small ring so it's visible over both bright and dark
           areas of the wheel. */}

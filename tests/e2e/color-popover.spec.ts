@@ -4,7 +4,7 @@ test('double-clicking a swatch opens a color picker popover anchored next to it'
   page,
 }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   // The `primary` swatch in the Colors panel — scoped via the section.
   const colorsPanel = page
@@ -23,7 +23,7 @@ test('double-clicking a swatch opens a color picker popover anchored next to it'
 
 test('the popover editor writes to the document via its OKLCH text input', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   const colorsPanel = page
     .locator('section')
@@ -42,9 +42,9 @@ test('the popover editor writes to the document via its OKLCH text input', async
 
   const value = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { primary: { value: string } } } };
     };
     return doc.tokens.colors.light.primary.value;
@@ -54,7 +54,7 @@ test('the popover editor writes to the document via its OKLCH text input', async
 
 test('Escape closes the color popover', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   const colorsPanel = page
     .locator('section')

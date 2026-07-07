@@ -1,6 +1,6 @@
 # Modern CSS Strategy
 
-The brief calls for "the most modern CSS that's safe and practical for production, especially where it reduces JavaScript." This doc sets the policy for **both** the code Tincture emits and the editor's own UI.
+The brief calls for "the most modern CSS that's safe and practical for production, especially where it reduces JavaScript." This doc sets the policy for **both** the code Mintcn emits and the editor's own UI.
 
 The governing principle: **if a behavior can be expressed natively in CSS, prefer that over JavaScript.** Native CSS is more maintainable, more accessible by default, and produces output that's easier to diff and own — exactly what shadcn-style codebases want.
 
@@ -14,7 +14,7 @@ Browser support has moved a lot. As of 2025 most of the features below crossed i
 
 Use these in emitted code without guards.
 
-| Feature | Use in Tincture |
+| Feature | Use in Mintcn |
 |---|---|
 | **CSS custom properties** | The entire theme. Tokens are variables; the live preview restyles by setting them on a root. |
 | **Cascade layers (`@layer`)** | Emit the theme into `@layer base`; emit component overrides into `@layer components` so generated rules never win specificity wars against user code. |
@@ -57,7 +57,7 @@ Things like `sibling-index()` / `sibling-count()` — interesting for generated 
 
 2. **Prefer native over JS.** Don't emit (or write) a JS handler for something CSS does: parent/sibling state → `:has()`; component responsiveness → container queries; theming → custom properties; derived colors → `color-mix()`. The output should read like a strong frontend engineer chose the native tool on purpose.
 
-3. **Use cascade layers to stay polite.** Generated overrides go in a named layer below the user's unlayered styles, so Tincture never silently out-specifies hand-written code. This is a correctness property, not a style preference.
+3. **Use cascade layers to stay polite.** Generated overrides go in a named layer below the user's unlayered styles, so Mintcn never silently out-specifies hand-written code. This is a correctness property, not a style preference.
 
 4. **Logical properties always.** Emit logical, not physical, directions. It's free RTL correctness and matches shadcn's current direction.
 

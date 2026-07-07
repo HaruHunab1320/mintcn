@@ -20,7 +20,7 @@ Per-component facts discovered from the codebase: the variant axes parsed out of
 
 ### 4. Emitted code (derived — never edited as truth)
 
-`components.json` patches, CSS variable blocks, `registry-item.json`, modified component source, and diffs. Always regenerated from 1–3 above. A user never hand-edits emitted code inside Tincture; they edit intent, and the code follows.
+`components.json` patches, CSS variable blocks, `registry-item.json`, modified component source, and diffs. Always regenerated from 1–3 above. A user never hand-edits emitted code inside Mintcn; they edit intent, and the code follows.
 
 > **Invariant:** the same project document always produces byte-identical output. No timestamps, no nondeterministic ordering, no machine-specific paths. This is what keeps exports clean in git.
 
@@ -103,7 +103,7 @@ shadcn v4 components reference theme tokens through CSS variables (`var(--primar
 function PreviewRoot({ tokens, theme, children }) {
   const vars = tokensToCssVars(tokens, theme); // { '--primary': 'oklch(...)', ... }
   return (
-    <div data-theme={theme} style={vars} className="tincture-preview">
+    <div data-theme={theme} style={vars} className="mintcn-preview">
       {children}
     </div>
   );

@@ -8,13 +8,13 @@ import { expect, test } from '@playwright/test';
  */
 test('image sampling assigns a primary color derived from the image', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
 
   const originalPrimary = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { primary: { value: string } } } };
     };
     return doc.tokens.colors.light.primary.value;
@@ -46,9 +46,9 @@ test('image sampling assigns a primary color derived from the image', async ({ p
 
   const newPrimary = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { primary: { value: string } } } };
     };
     return doc.tokens.colors.light.primary.value;

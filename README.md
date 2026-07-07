@@ -1,10 +1,10 @@
-# Tincture
+# Mintcn
 
 > Working codename — rename freely. A visual customization layer and code generator for shadcn-style component systems.
 
-**Tincture** is a design-time editor for shadcn/ui codebases. You select a component, change its styling and behavior visually, watch a live preview update instantly, inspect exactly which tokens and classes changed, and then export the result as **clean, commit-ready code** that drops straight into a real project.
+**Mintcn** is a design-time editor for shadcn/ui codebases. You select a component, change its styling and behavior visually, watch a live preview update instantly, inspect exactly which tokens and classes changed, and then export the result as **clean, commit-ready code** that drops straight into a real project.
 
-It is deliberately **not another component library**. shadcn/ui already solved component distribution by shipping source code you own. Tincture extends that model with the missing piece: a visual editor and deterministic code generator that sits *on top of* the components you already have.
+It is deliberately **not another component library**. shadcn/ui already solved component distribution by shipping source code you own. Mintcn extends that model with the missing piece: a visual editor and deterministic code generator that sits *on top of* the components you already have.
 
 ```
 edit visually  →  persist structurally  →  generate clean code
@@ -20,7 +20,7 @@ edit visually  →  persist structurally  →  generate clean code
 
 ## What it is not
 
-- Not a runtime wrapper. Tincture emits no opaque abstraction that wraps your components at runtime — it edits the source.
+- Not a runtime wrapper. Mintcn emits no opaque abstraction that wraps your components at runtime — it edits the source.
 - Not a replacement for shadcn/ui. It targets shadcn's existing output formats (`components.json`, CSS variable themes, `registry-item.json`, component source).
 - Not a competitor on component count. The value is in **accelerating customization and standardizing a design system**, not in shipping more buttons.
 
@@ -41,7 +41,7 @@ edit visually  →  persist structurally  →  generate clean code
 
 ## Why it works on a modern stack
 
-Tincture targets the current shadcn model: **Tailwind CSS v4** with CSS-first configuration, semantic CSS variables defined in cascade layers, and the registry distribution system. Where the brief calls for "the most modern CSS that's safe in production," the project leans on **CSS variables, `:has()`, container queries, cascade layers, subgrid, `color-mix()`, and logical properties** — all of which are widely available across current browsers — and treats anything still settling (e.g. `@scope`, anchor positioning) as progressive enhancement behind `@supports`. The principle throughout: **if a behavior can be expressed natively in CSS, prefer that over JavaScript.**
+Mintcn targets the current shadcn model: **Tailwind CSS v4** with CSS-first configuration, semantic CSS variables defined in cascade layers, and the registry distribution system. Where the brief calls for "the most modern CSS that's safe in production," the project leans on **CSS variables, `:has()`, container queries, cascade layers, subgrid, `color-mix()`, and logical properties** — all of which are widely available across current browsers — and treats anything still settling (e.g. `@scope`, anchor positioning) as progressive enhancement behind `@supports`. The principle throughout: **if a behavior can be expressed natively in CSS, prefer that over JavaScript.**
 
 See [`docs/CSS-STRATEGY.md`](docs/CSS-STRATEGY.md) for the full feature matrix and fallback policy.
 

@@ -4,10 +4,10 @@ test('Cmd+K opens the command palette', async ({ page }) => {
   await page.goto('/');
   // Wait for the app to be interactive — the palette listener mounts after
   // App's first effect runs. Without this the keyboard event can race past.
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
   // Click the header so keyboard focus is somewhere in the document, then
   // dispatch Control+K — the App listens for both metaKey and ctrlKey.
-  await page.getByRole('heading', { name: 'Tincture' }).click();
+  await page.getByRole('heading', { name: 'Mintcn' }).click();
   await page.keyboard.press('Control+k');
   await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'Search commands' })).toBeFocused();
@@ -35,9 +35,9 @@ test('Generate palette command rolls the unlocked tokens', async ({ page }) => {
 
   const before = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { background: { value: string } } } };
     };
     return doc.tokens.colors.light.background.value;
@@ -49,9 +49,9 @@ test('Generate palette command rolls the unlocked tokens', async ({ page }) => {
 
   const after = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { background: { value: string } } } };
     };
     return doc.tokens.colors.light.background.value;

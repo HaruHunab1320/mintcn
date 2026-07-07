@@ -3,9 +3,9 @@ import { expect, test } from '@playwright/test';
 async function primaryValue(page: import('@playwright/test').Page) {
   return page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { primary: { value: string } } } };
     };
     return doc.tokens.colors.light.primary.value;
@@ -14,20 +14,20 @@ async function primaryValue(page: import('@playwright/test').Page) {
 
 test('undo button rolls back a token edit; redo replays it', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
   const original = await primaryValue(page);
 
   // Mutate primary via the store so the history entry is recorded through
   // the temporal middleware (throttled at 250ms — wait past it).
   await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: {
+      __MINTCN_STORE__: {
         getState: () => {
           setTokenColor: (theme: string, token: string, value: unknown) => void;
         };
       };
     };
-    win.__TINCTURE_STORE__.getState().setTokenColor('light', 'primary', {
+    win.__MINTCN_STORE__.getState().setTokenColor('light', 'primary', {
       kind: 'literal',
       space: 'oklch',
       value: 'oklch(0.7 0.2 30)',
@@ -50,18 +50,18 @@ test('undo button rolls back a token edit; redo replays it', async ({ page }) =>
 
 test('Ctrl+Z outside a text input triggers undo', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
   const original = await primaryValue(page);
 
   await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: {
+      __MINTCN_STORE__: {
         getState: () => {
           setTokenColor: (theme: string, token: string, value: unknown) => void;
         };
       };
     };
-    win.__TINCTURE_STORE__.getState().setTokenColor('light', 'primary', {
+    win.__MINTCN_STORE__.getState().setTokenColor('light', 'primary', {
       kind: 'literal',
       space: 'oklch',
       value: 'oklch(0.5 0.15 120)',
@@ -71,7 +71,7 @@ test('Ctrl+Z outside a text input triggers undo', async ({ page }) => {
   expect(await primaryValue(page)).toBe('oklch(0.5 0.15 120)');
 
   // Focus somewhere that isn't a form field.
-  await page.getByRole('heading', { name: 'Tincture' }).click();
+  await page.getByRole('heading', { name: 'Mintcn' }).click();
   await page.keyboard.press('Control+z');
   expect(await primaryValue(page)).toBe(original);
 });

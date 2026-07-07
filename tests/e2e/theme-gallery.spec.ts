@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('opening the gallery and clicking Matrix Terminal applies its palette', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
   await page.route('https://fonts.googleapis.com/**', (route) =>
     route.fulfill({ status: 200, contentType: 'text/css', body: '' }),
   );
@@ -17,9 +17,9 @@ test('opening the gallery and clicking Matrix Terminal applies its palette', asy
   // Matrix theme locks primary at ~145° hue. Read back --primary and verify.
   const primary = await page.evaluate(() => {
     const win = window as unknown as {
-      __TINCTURE_STORE__: { getState: () => { document: unknown } };
+      __MINTCN_STORE__: { getState: () => { document: unknown } };
     };
-    const doc = win.__TINCTURE_STORE__.getState().document as {
+    const doc = win.__MINTCN_STORE__.getState().document as {
       tokens: { colors: { light: { primary: { value: string } } } };
     };
     return doc.tokens.colors.light.primary.value;
@@ -30,7 +30,7 @@ test('opening the gallery and clicking Matrix Terminal applies its palette', asy
 
 test('category filter narrows the visible cards', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
   await page.route('https://fonts.googleapis.com/**', (route) =>
     route.fulfill({ status: 200, contentType: 'text/css', body: '' }),
   );
@@ -50,7 +50,7 @@ test('save current + reopen: new preset shows as a Mine card and applies on clic
   page,
 }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
   await page.route('https://fonts.googleapis.com/**', (route) =>
     route.fulfill({ status: 200, contentType: 'text/css', body: '' }),
   );
@@ -96,9 +96,9 @@ test('save current + reopen: new preset shows as a Mine card and applies on clic
     .poll(async () =>
       page.evaluate(() => {
         const win = window as unknown as {
-          __TINCTURE_STORE__: { getState: () => { document: unknown } };
+          __MINTCN_STORE__: { getState: () => { document: unknown } };
         };
-        const doc = win.__TINCTURE_STORE__.getState().document as {
+        const doc = win.__MINTCN_STORE__.getState().document as {
           tokens: { colors: { light: { primary: { value: string } } } };
         };
         return doc.tokens.colors.light.primary.value;
@@ -109,7 +109,7 @@ test('save current + reopen: new preset shows as a Mine card and applies on clic
 
 test('Escape closes the gallery', async ({ page }) => {
   await page.goto('/');
-  await page.waitForSelector('.tincture-preview');
+  await page.waitForSelector('.mintcn-preview');
   await page.route('https://fonts.googleapis.com/**', (route) =>
     route.fulfill({ status: 200, contentType: 'text/css', body: '' }),
   );

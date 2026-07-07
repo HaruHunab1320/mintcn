@@ -1,4 +1,4 @@
-import { fixtureOriginals, fixtureProject } from 'virtual:tincture-fixture';
+import { fixtureOriginals, fixtureProject } from 'virtual:mintcn-fixture';
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { changedFiles, emitProject } from '@/codegen';
 import {
@@ -61,7 +61,7 @@ export default function App() {
   useEffect(() => {
     load(fixtureProject, fixtureOriginals);
     if (import.meta.env.DEV) {
-      (window as unknown as { __TINCTURE_STORE__: typeof useProjectStore }).__TINCTURE_STORE__ =
+      (window as unknown as { __MINTCN_STORE__: typeof useProjectStore }).__MINTCN_STORE__ =
         useProjectStore;
     }
     // Rehydrate a shared theme from the URL hash. Runs after the fixture is
@@ -76,7 +76,7 @@ export default function App() {
           load(merged, fixtureOriginals);
         })
         .catch((err) => {
-          console.warn('[tincture] could not hydrate URL doc:', err);
+          console.warn('[mintcn] could not hydrate URL doc:', err);
         });
     }
   }, [load]);
@@ -108,7 +108,7 @@ export default function App() {
 
   const archiveName = document
     ? `${document.meta.name}-${new Date().toISOString().slice(0, 10)}`
-    : 'tincture';
+    : 'mintcn';
 
   const scrollToPanel = useCallback((id: PanelId) => {
     const el = window.document.querySelector(`[data-panel-id="${id}"]`);
@@ -140,7 +140,7 @@ export default function App() {
       setShareState('copied');
       window.setTimeout(() => setShareState('idle'), 1800);
     } catch (err) {
-      console.warn('[tincture] share failed:', err);
+      console.warn('[mintcn] share failed:', err);
       setShareState('error');
       window.setTimeout(() => setShareState('idle'), 2400);
     }
@@ -234,13 +234,13 @@ export default function App() {
   return (
     <div
       style={rootStyle}
-      className={`tincture-chrome flex h-screen flex-col bg-background text-foreground ${
+      className={`mintcn-chrome flex h-screen flex-col bg-background text-foreground ${
         theme === 'dark' ? 'dark' : ''
       }`}
     >
       <header className="flex shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-6 py-4 shadow-sm">
         <div>
-          <h1 className="text-lg font-medium tracking-tight">Tincture</h1>
+          <h1 className="text-lg font-medium tracking-tight">Mintcn</h1>
           <p className="text-sm text-muted-foreground">
             {document
               ? `${document.meta.name} · ${document.meta.baseColor} · ${document.components.length} components`
@@ -355,7 +355,7 @@ export default function App() {
               onForceStateChange={setForceState}
             />
           </main>
-          <div className="flex h-full shrink-0 border-l border-border">
+          <div className="flex h-full shrink-0 border-l border-sidebar-border">
             <PropertyPanel document={document} />
           </div>
         </div>

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('force-state toggle sets data-force-state on PreviewRoot', async ({ page }) => {
   await page.goto('/');
-  const preview = page.locator('.tincture-preview');
+  const preview = page.locator('.mintcn-preview');
   await expect(preview).toBeVisible();
   await expect(preview).not.toHaveAttribute('data-force-state');
 
@@ -19,7 +19,7 @@ test('force-state toggle sets data-force-state on PreviewRoot', async ({ page })
 test('force-disabled visibly fades a primary button via --disabled-opacity', async ({ page }) => {
   await page.goto('/');
   const primaryButton = page
-    .locator('.tincture-preview [data-slot="button"][data-variant="default"]')
+    .locator('.mintcn-preview [data-slot="button"][data-variant="default"]')
     .first();
   await expect(primaryButton).toBeVisible();
   const opacityBefore = await primaryButton.evaluate((el) => getComputedStyle(el).opacity);
@@ -32,7 +32,7 @@ test('force-disabled visibly fades a primary button via --disabled-opacity', asy
 test('force-active visibly scales a primary button via --active-scale', async ({ page }) => {
   await page.goto('/');
   const primaryButton = page
-    .locator('.tincture-preview [data-slot="button"][data-variant="default"]')
+    .locator('.mintcn-preview [data-slot="button"][data-variant="default"]')
     .first();
   await page.getByRole('button', { name: 'active', exact: true }).click();
   // transform reads as a matrix; we just assert it's no longer 'none' and is
