@@ -29,7 +29,11 @@ export function ScrollChapters({
     },
     [onActiveChange],
   );
-  const firedRef = useRef<Set<string>>(new Set());
+  // Track the last chapter that fired onEnter so we don't spam dispatches
+  // for tiny scroll corrections that stay inside a chapter's active zone.
+  // We do NOT gate on a fire-once set — scrolling back up should replay
+  // earlier chapters (the whole point of the demo being reversible).
+  const lastFiredRef = useRef<string | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -42,11 +46,10 @@ export function ScrollChapters({
           const id = entry.target.getAttribute('data-chapter-id');
           if (!id) continue;
           setActiveId(id);
+          if (id === lastFiredRef.current) continue;
+          lastFiredRef.current = id;
           const chapter = chapters.find((c) => c.id === id);
-          if (chapter && !firedRef.current.has(id)) {
-            firedRef.current.add(id);
-            chapter.onEnter?.();
-          }
+          chapter?.onEnter?.();
         }
       },
       {

@@ -27,6 +27,13 @@ export function tokensToCssVars(doc: ProjectDocument, theme: MintcnTheme): CSSPr
   for (const token of SEMANTIC_COLOR_TOKENS) {
     style[`--${token}`] = resolveColorValue(themeColors[token]);
   }
+  // Shadows — Tailwind v4's `shadow-{sm,md,lg,…}` utilities read `--shadow-*`
+  // directly, so overriding here re-styles every shadcn component that uses
+  // shadows without touching component source. Curated themes lean on this
+  // to feel visually distinct (crisp dev shadows vs soft dreamy vs razor).
+  for (const [name, value] of Object.entries(doc.tokens.shadows ?? {})) {
+    style[`--shadow-${name}`] = value;
+  }
   const states = doc.tokens.states;
   if (states) {
     style['--hover-opacity'] = String(states.hoverOpacity);

@@ -64,14 +64,16 @@ interface ProjectState {
   }) => void;
   /**
    * Apply a curated palette-plus-vibe bundle: light/dark color maps, a
-   * radius, and the sans/serif/mono font stacks. Other tokens (scale,
-   * spacing, shadows, borders, states, animations) stay from the current
-   * document. Merges as a single history step.
+   * radius, the sans/serif/mono font stacks, and (optionally) a full shadow
+   * scale that replaces the doc's shadow map. Other tokens (scale, spacing,
+   * borders, states, animations) stay from the current document. Merges as
+   * a single history step so undo restores everything at once.
    */
   applyTheme: (spec: {
     colors: TokenState['colors'];
     radius: string;
     fontFamily: TokenState['typography']['fontFamily'];
+    shadows?: TokenState['shadows'];
   }) => void;
   setRadius: (value: string) => void;
   setFontFamily: (family: FontFamilyKey, value: string) => void;
@@ -203,6 +205,12 @@ export const useProjectStore = create<ProjectState>()(
                   ...document.tokens.typography,
                   fontFamily: spec.fontFamily,
                 },
+                // Optional: when a curated theme ships its own shadow scale
+                // (crisp / soft / dramatic), we replace the doc's map
+                // wholesale so the vibe reads clearly. Missing → keep the
+                // current shadows so an ad-hoc palette change doesn't wipe
+                // the user's shadow tokens.
+                ...(spec.shadows ? { shadows: spec.shadows } : {}),
               },
             },
           };
