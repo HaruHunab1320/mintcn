@@ -61,10 +61,6 @@ export default function App() {
 
   useEffect(() => {
     load(fixtureProject, fixtureOriginals);
-    if (import.meta.env.DEV) {
-      (window as unknown as { __MINTCN_STORE__: typeof useProjectStore }).__MINTCN_STORE__ =
-        useProjectStore;
-    }
     // If we just came back from a GitHub OAuth callback, stash the token and
     // clean the URL. Fires before the shared-link hydration below so the two
     // fragment consumers don't fight over `#`.
