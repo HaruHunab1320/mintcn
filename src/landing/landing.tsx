@@ -71,6 +71,7 @@ export function Landing() {
 
   const activeChapter = chapters.find((c) => c.id === activeChapterId);
   const focus = activeChapter?.focus ?? 'all';
+  const showOverrideCallout = activeChapterId === 'overrides';
 
   return (
     <div className="grid h-screen grid-cols-1 bg-background text-foreground lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
@@ -79,7 +80,7 @@ export function Landing() {
         activeId={activeChapterId}
         onActiveChange={setActiveChapterId}
       />
-      <PreviewShell focus={focus} />
+      <PreviewShell focus={focus} showOverrideCallout={showOverrideCallout} />
     </div>
   );
 }

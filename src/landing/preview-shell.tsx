@@ -12,6 +12,8 @@ import { OverrideCallout } from './override-callout';
 
 interface PreviewShellProps {
   focus?: ShowcaseFocus;
+  /** Show the interactive override callout — set only for the overrides chapter. */
+  showOverrideCallout?: boolean;
 }
 
 /**
@@ -23,7 +25,7 @@ interface PreviewShellProps {
  * toolbar. The chapters explain what those panels do; this pane is the
  * moving picture that proves it.
  */
-export function PreviewShell({ focus = 'all' }: PreviewShellProps) {
+export function PreviewShell({ focus = 'all', showOverrideCallout = false }: PreviewShellProps) {
   const document = useProjectStore((s) => s.document);
   const [theme, setTheme] = useState<PreviewTheme>('light');
   const [forceState, setForceState] = useState<ForceState>('off');
@@ -52,7 +54,7 @@ export function PreviewShell({ focus = 'all' }: PreviewShellProps) {
         theme === 'dark' ? 'dark' : ''
       }`}
     >
-      <OverrideCallout />
+      <OverrideCallout visible={showOverrideCallout} />
       <PaletteBar document={document} />
       <Canvas
         document={document}

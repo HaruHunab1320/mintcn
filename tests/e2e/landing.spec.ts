@@ -77,22 +77,38 @@ test('applying a curated theme with shadows also swaps --shadow-* on the preview
   await expect(preview).toHaveAttribute('style', /--shadow-md:.*oklch/);
 });
 
-test('the override callout surfaces the active class-string rewrite', async ({ page }) => {
+test('the override callout appears only on the overrides chapter + is editable', async ({
+  page,
+}) => {
   await page.goto('/learn');
   const callout = page.getByRole('complementary', { name: 'Active overrides' });
 
   // Hero chapter has no overrides — callout should be hidden.
   await expect(callout).toHaveCount(0);
 
-  // Scroll to the overrides chapter — it rewrites button.size.sm.
+  // Scroll to the overrides chapter — the callout appears with the class string.
   await page.locator('[data-chapter-id="overrides"]').evaluate((el) => {
     el.scrollIntoView({ block: 'center' });
   });
-
-  // The callout should now be visible and show the exact class string.
   await expect(callout).toBeVisible();
   await expect(callout).toContainText('button.size.sm');
-  await expect(callout).toContainText('rounded-full');
+
+  // Editing the textarea should mutate the store — the visitor drives the tool.
+  const textarea = callout.getByLabel('button.size.sm class string');
+  await textarea.fill('h-10 rounded-full px-6 text-base');
+  await expect
+    .poll(async () => {
+      const doc = await getDocument(page);
+      return doc?.overrides[0]?.variants?.size?.sm?.replaceWith;
+    })
+    .toBe('h-10 rounded-full px-6 text-base');
+
+  // Scroll past to a chapter that isn't 'overrides' — the callout disappears
+  // even though the override still exists in the doc.
+  await page.locator('[data-chapter-id="motion-duration"]').evaluate((el) => {
+    el.scrollIntoView({ block: 'center' });
+  });
+  await expect(callout).toHaveCount(0);
 });
 
 test('motion tokens retime real shadcn transitions (not just the demo strip)', async ({

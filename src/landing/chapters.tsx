@@ -220,7 +220,10 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           server. Your token stays in your tab.
         </p>
       ),
-      focus: 'all',
+      // Focus on buttons for the closing CTA — the Motion strip would spin at
+      // whatever fast durations the fixture ships (200–300ms), which reads as
+      // chaotic right when we want a calm "click here" moment.
+      focus: 'buttons',
       cta: { label: 'Open the editor →', href: '/' },
     },
   ];
