@@ -8,6 +8,7 @@ import {
   tokensToCssVars,
 } from '@/renderer';
 import { useProjectStore } from '@/store/project-store';
+import { OverrideCallout } from './override-callout';
 
 interface PreviewShellProps {
   focus?: ShowcaseFocus;
@@ -47,10 +48,11 @@ export function PreviewShell({ focus = 'all' }: PreviewShellProps) {
     <section
       aria-label="Live preview"
       style={rootStyle}
-      className={`flex flex-col gap-4 overflow-y-auto border-l border-sidebar-border bg-background p-6 ${
+      className={`relative flex flex-col gap-4 overflow-y-auto border-l border-sidebar-border bg-background p-6 ${
         theme === 'dark' ? 'dark' : ''
       }`}
     >
+      <OverrideCallout />
       <PaletteBar document={document} />
       <Canvas
         document={document}

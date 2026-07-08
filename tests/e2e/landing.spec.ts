@@ -77,6 +77,24 @@ test('applying a curated theme with shadows also swaps --shadow-* on the preview
   await expect(preview).toHaveAttribute('style', /--shadow-md:.*oklch/);
 });
 
+test('the override callout surfaces the active class-string rewrite', async ({ page }) => {
+  await page.goto('/learn');
+  const callout = page.getByRole('complementary', { name: 'Active overrides' });
+
+  // Hero chapter has no overrides — callout should be hidden.
+  await expect(callout).toHaveCount(0);
+
+  // Scroll to the overrides chapter — it rewrites button.size.sm.
+  await page.locator('[data-chapter-id="overrides"]').evaluate((el) => {
+    el.scrollIntoView({ block: 'center' });
+  });
+
+  // The callout should now be visible and show the exact class string.
+  await expect(callout).toBeVisible();
+  await expect(callout).toContainText('button.size.sm');
+  await expect(callout).toContainText('rounded-full');
+});
+
 test('motion tokens retime real shadcn transitions (not just the demo strip)', async ({
   page,
 }) => {
