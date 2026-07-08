@@ -8,12 +8,24 @@ import {
   tokensToCssVars,
 } from '@/renderer';
 import { useProjectStore } from '@/store/project-store';
+import { DiffPreview } from './diff-preview';
+import { ImageDropDemo } from './image-drop-demo';
+import { MotionLab } from './motion-lab';
 import { OverrideCallout } from './override-callout';
+import { RepoConnect } from './repo-connect';
 
 interface PreviewShellProps {
   focus?: ShowcaseFocusInput;
   /** Show the interactive override callout — set only for the overrides chapter. */
   showOverrideCallout?: boolean;
+  /** Show the editable motion panel — set only for the timing chapter. */
+  showMotionLab?: boolean;
+  /** Swap the component canvas for the live generated diff — set only for the diff chapter. */
+  showDiff?: boolean;
+  /** Swap the canvas for the repo-connect demo — set only for the "yours" chapter. */
+  showRepoConnect?: boolean;
+  /** Show the draggable sample-image card above the palette — set only for the CTA chapter. */
+  showImageDemo?: boolean;
 }
 
 /**
@@ -25,7 +37,14 @@ interface PreviewShellProps {
  * toolbar. The chapters explain what those panels do; this pane is the
  * moving picture that proves it.
  */
-export function PreviewShell({ focus = 'all', showOverrideCallout = false }: PreviewShellProps) {
+export function PreviewShell({
+  focus = 'all',
+  showOverrideCallout = false,
+  showMotionLab = false,
+  showDiff = false,
+  showRepoConnect = false,
+  showImageDemo = false,
+}: PreviewShellProps) {
   const document = useProjectStore((s) => s.document);
   const [theme, setTheme] = useState<PreviewTheme>('light');
   const [forceState, setForceState] = useState<ForceState>('off');
@@ -55,16 +74,26 @@ export function PreviewShell({ focus = 'all', showOverrideCallout = false }: Pre
       }`}
     >
       <OverrideCallout visible={showOverrideCallout} />
-      <PaletteBar document={document} />
-      <Canvas
-        document={document}
-        theme={theme}
-        onThemeChange={setTheme}
-        forceState={forceState}
-        onForceStateChange={setForceState}
-        focus={focus}
-        showFocusControl={false}
-      />
+      {showDiff ? (
+        <DiffPreview />
+      ) : showRepoConnect ? (
+        <RepoConnect />
+      ) : (
+        <>
+          {showMotionLab ? <MotionLab visible /> : null}
+          {showImageDemo ? <ImageDropDemo /> : null}
+          <PaletteBar document={document} />
+          <Canvas
+            document={document}
+            theme={theme}
+            onThemeChange={setTheme}
+            forceState={forceState}
+            onForceStateChange={setForceState}
+            focus={focus}
+            showFocusControl={false}
+          />
+        </>
+      )}
     </section>
   );
 }

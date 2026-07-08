@@ -88,17 +88,24 @@ export function PaletteBar({ document }: PaletteBarProps) {
   const [sampling, setSampling] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const applyImageFile = useCallback(
-    async (file: File) => {
+  const applyImageSource = useCallback(
+    // Accepts an OS-dropped File or an image URL (data: or http[s]) — the
+    // sampler resolves both. The /learn image-drop demo drags an in-page
+    // image, which arrives as a URL rather than a File.
+    async (source: File | string) => {
       setSampling(true);
       try {
-        const clusters = await sampleImagePalette(file, { k: 6 });
+        const clusters = await sampleImagePalette(source, { k: 6 });
         const palette = assignPaletteFromImage({
           clusters,
           currentDestructive:
             colorValueToTriplet(document.tokens.colors.light.destructive) ?? undefined,
         });
         applyPalette(palette);
+      } catch (err) {
+        // Cross-origin images taint the canvas; swallow so a stray drag can't
+        // throw an unhandled rejection. The demo image is same-origin.
+        console.warn('Palette sampling failed:', err);
       } finally {
         setSampling(false);
       }
@@ -198,7 +205,10 @@ export function PaletteBar({ document }: PaletteBarProps) {
          the accessible entry point. */}
       <div
         onDragOver={(e) => {
-          if (Array.from(e.dataTransfer.types).includes('Files')) {
+          const types = Array.from(e.dataTransfer.types);
+          // Accept OS file drags AND in-page image drags (which carry a URL
+          // under text/uri-list rather than a File).
+          if (types.includes('Files') || types.includes('text/uri-list')) {
             e.preventDefault();
             setDropActive(true);
           }
@@ -208,7 +218,15 @@ export function PaletteBar({ document }: PaletteBarProps) {
           e.preventDefault();
           setDropActive(false);
           const file = e.dataTransfer.files[0];
-          if (file?.type.startsWith('image/')) void applyImageFile(file);
+          if (file?.type.startsWith('image/')) {
+            void applyImageSource(file);
+            return;
+          }
+          const uri =
+            e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain');
+          if (uri && /^(data:image\/|https?:)/.test(uri.trim())) {
+            void applyImageSource(uri.trim());
+          }
         }}
         className={`relative grid grid-cols-5 gap-2 rounded-md transition-colors ${
           dropActive ? 'ring-2 ring-ring ring-offset-2 ring-offset-background' : ''
@@ -237,7 +255,7 @@ export function PaletteBar({ document }: PaletteBarProps) {
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) void applyImageFile(file);
+          if (file) void applyImageSource(file);
           e.target.value = ''; // allow re-selecting the same file next time
         }}
       />

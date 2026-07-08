@@ -121,3 +121,36 @@
     transform: rotate(360deg);
   }
 }
+
+/* Attention cues used by the /learn closing chapters — an expanding ring that
+   pulls the eye to the GitHub connect button, plus small nudging arrows that
+   point at the connect button / palette drop zone. */
+@keyframes mintcn-attention-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--ring, currentColor) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 12px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+@keyframes mintcn-point-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+}
+@keyframes mintcn-point-nudge-down {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}

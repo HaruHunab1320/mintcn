@@ -449,6 +449,12 @@ function CalendarShowcase() {
  * /learn page make the timing/curve visibly change.
  */
 function ShowcaseAnimations() {
+  // These loop forever, so they need a watchable floor: a real design system's
+  // `--duration-slow` is ~300ms (great for a hover transition, a strobe for an
+  // infinite loop). `max()` keeps the demo legible while still reacting to the
+  // token — edits above the floor slow it further, and the label names the
+  // token that actually drives it. Longhand (not the `animation` shorthand) so
+  // the `max()` math function parses reliably across browsers.
   return (
     <Section title="Motion">
       <div className="flex flex-col gap-4">
@@ -457,8 +463,11 @@ function ShowcaseAnimations() {
           <span
             className="inline-block h-4 w-4 rounded-full bg-primary"
             style={{
-              animation:
-                'mintcn-demo-pulse var(--duration-normal, 400ms) var(--ease-out, ease-out) infinite alternate',
+              animationName: 'mintcn-demo-pulse',
+              animationDuration: 'max(var(--duration-normal, 400ms), 900ms)',
+              animationTimingFunction: 'var(--ease-out, ease-out)',
+              animationIterationCount: 'infinite',
+              animationDirection: 'alternate',
             }}
           />
           <span className="font-mono text-[10px] text-muted-foreground/70">
@@ -471,8 +480,11 @@ function ShowcaseAnimations() {
             <span
               className="absolute inset-y-0 h-4 w-4 rounded-full bg-primary"
               style={{
-                animation:
-                  'mintcn-demo-slide var(--duration-slow, 800ms) var(--ease-in-out, ease-in-out) infinite alternate',
+                animationName: 'mintcn-demo-slide',
+                animationDuration: 'max(var(--duration-slow, 800ms), 1600ms)',
+                animationTimingFunction: 'var(--ease-in-out, ease-in-out)',
+                animationIterationCount: 'infinite',
+                animationDirection: 'alternate',
               }}
             />
           </div>
@@ -485,7 +497,10 @@ function ShowcaseAnimations() {
           <span
             className="inline-block h-6 w-6 rounded bg-primary"
             style={{
-              animation: 'mintcn-demo-rotate var(--duration-slow, 1200ms) linear infinite',
+              animationName: 'mintcn-demo-rotate',
+              animationDuration: 'max(var(--duration-slow, 1200ms), 2000ms)',
+              animationTimingFunction: 'linear',
+              animationIterationCount: 'infinite',
             }}
           />
           <span className="font-mono text-[10px] text-muted-foreground/70">
@@ -509,33 +524,31 @@ const SHOWCASE_RENDERERS: Record<ShowcaseSection, () => ReactElement> = {
 };
 
 /**
- * Router between the stacked (default), single-section, and multi-section
- * preview layouts. Kept a component (not just JSX in the parent) so React
- * can recycle the inner section instances across focus changes without
- * unmounting.
+ * Router between the single-section and multi-section preview layouts. Kept a
+ * component (not just JSX in the parent) so React can recycle the inner section
+ * instances across focus changes without unmounting.
+ *
+ * Sections flow into a CSS-columns masonry gated on a container query, so the
+ * preview fills its horizontal space instead of stranding one tall column with
+ * whitespace beside it: 1 column when narrow (mobile device preset), 2 once the
+ * viewport is roughly split-screen wide, 3 on a full-width canvas. Each section
+ * is `break-inside-avoid` so it never splits across a column boundary.
  */
 function FocusedShowcase({ focus }: { focus: ShowcaseFocusInput }) {
-  if (focus === 'all') {
-    return (
-      <div className="flex flex-col gap-10">
-        <ButtonsShowcase />
-        <BadgesShowcase />
-        <FormControlsShowcase />
-        <NavigationShowcase />
-        <DataDisplayShowcase />
-        <FeedbackShowcase />
-        <CalendarShowcase />
-        <ShowcaseAnimations />
-      </div>
-    );
-  }
-  const sections: readonly ShowcaseSection[] = Array.isArray(focus) ? focus : [focus];
+  const sections: readonly ShowcaseSection[] =
+    focus === 'all' ? SHOWCASE_SECTIONS : Array.isArray(focus) ? focus : [focus];
   return (
-    <div className="flex flex-col gap-10">
-      {sections.map((id) => {
-        const Renderer = SHOWCASE_RENDERERS[id];
-        return <Renderer key={id} />;
-      })}
+    <div className="@container">
+      <div className="gap-x-8 @xl:columns-2 @5xl:columns-3">
+        {sections.map((id) => {
+          const Renderer = SHOWCASE_RENDERERS[id];
+          return (
+            <div key={id} className="mb-10 break-inside-avoid">
+              <Renderer />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -632,7 +645,7 @@ export function Canvas({
   // Chip filter needs a single-value focus; when the caller passed an array
   // (only /learn does today) fall back to 'all' so the chip stays coherent
   // even if it were to be shown.
-  const chipFocus: ShowcaseFocus = Array.isArray(focus) ? 'all' : focus;
+  const chipFocus: ShowcaseFocus = typeof focus === 'string' ? focus : 'all';
   const setTheme = (next: PreviewTheme) => {
     if (onThemeChange) onThemeChange(next);
     else setLocalTheme(next);

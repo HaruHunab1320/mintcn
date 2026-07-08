@@ -114,9 +114,10 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           27 through the same generator the palette bar uses.
         </p>
       ),
-      // Cards + badges + feedback show the palette touching surface / accent /
-      // destructive / muted all at once as the theme applies.
-      focus: ['data', 'badges', 'feedback'],
+      // A theme repaints everything, so show a broad spread — cards, badges,
+      // feedback, nav, and the calendar — packed into the masonry so the whole
+      // palette shift lands at once instead of one lonely card.
+      focus: ['data', 'badges', 'feedback', 'nav', 'calendar'],
       onEnter: () => actions.applyTheme(MATRIX),
     },
     {
@@ -129,9 +130,10 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           per-token locks. Drop an image and Mintcn samples its dominant hues into a palette.
         </p>
       ),
-      // Colors pop hardest on buttons (variant + size grid) plus badges +
-      // feedback banners. Fills the column top-to-bottom.
-      focus: ['buttons', 'badges', 'feedback'],
+      // Colors pop hardest on buttons (variant + size grid), badges, and
+      // feedback banners; forms + a data card round out the masonry so the
+      // hand-painted palette touches inputs and surfaces too.
+      focus: ['buttons', 'badges', 'feedback', 'forms', 'data'],
       onEnter: () => actions.applyTheme(AMBER),
     },
     {
@@ -145,9 +147,10 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           overlay before export.
         </p>
       ),
-      // Buttons first (that's what the callout targets) then badges below to
-      // give the visitor another cva-variant surface to eye while typing.
-      focus: ['buttons', 'badges'],
+      // Buttons first (that's what the callout targets), then badges + a data
+      // card + nav so the radius bump (rounded-full / 1rem) reads across
+      // several component families, not just the one button.
+      focus: ['buttons', 'badges', 'data', 'nav'],
       onEnter: () => {
         actions.setVariantClass(
           'button',
@@ -165,15 +168,17 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
       title: 'Timing tokens, live.',
       body: (
         <p>
-          Durations and easing curves are just CSS custom properties. When you edit
-          <span className="font-mono"> --duration-normal </span> in the panel, every animation
-          driven by that token retimes on its next tick. Watch the motion strip on the right slow
-          down.
+          Durations and easing curves are just CSS custom properties. Drag the sliders and pick a
+          curve on the right — every animation driven by{' '}
+          <span className="font-mono">--duration-*</span> and{' '}
+          <span className="font-mono">--ease-*</span> retimes on its next tick, and so do the real
+          buttons and tabs below.
         </p>
       ),
-      // Motion strip up top (the direct demo) + real Buttons below (which
-      // pick up the retimed transition-duration via the scoped CSS override).
-      focus: ['animations', 'buttons'],
+      // The editable MotionLab panel (rendered by the preview shell for this
+      // chapter) owns the animated strip + token controls; the focus here is
+      // real interactive components that visibly pick up the retimed easing.
+      focus: ['buttons', 'nav', 'data'],
       onEnter: () => {
         actions.setDuration('normal', '1400ms');
         actions.setDuration('slow', '2200ms');
@@ -205,9 +210,12 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
       body: (
         <p>
           Mintcn re-emits your source files with minimal churn — no unrelated formatting changes.
-          Copy the diff, or download a zip of just the changed files, and open the PR yourself.
+          The panel on the right is the real diff of everything you just changed while scrolling,
+          framed as the GitHub pull request you'd open. Copy it, download a zip, or push the branch.
         </p>
       ),
+      // No focus needed — the preview shell swaps the component canvas for the
+      // live DiffPreview on this chapter.
       focus: 'all',
     },
     {
@@ -216,12 +224,13 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
       title: 'Point it at your repo.',
       body: (
         <p>
-          Sign in with GitHub and paste any repo URL. Mintcn reads the components, tokens, and
-          overrides straight from your source — public or private.
+          Sign in with GitHub and paste any repo URL — try it on the right. Mintcn reads the
+          components, tokens, and overrides straight from your source, public or private, entirely
+          in your browser.
         </p>
       ),
-      // Form (paste URL) up top + nav elements below to imply "walk through
-      // your project's components after connecting."
+      // The preview swaps to the RepoConnect demo for this chapter (see the
+      // preview shell), so the focus here is unused.
       focus: ['forms', 'nav'],
       onEnter: actions.resetToFixture,
     },
@@ -231,8 +240,9 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
       title: 'Ready to edit yours?',
       body: (
         <p className="text-base text-muted-foreground">
-          Mintcn runs entirely in your browser. Nothing gets uploaded, nothing is stored on any
-          server. Your token stays in your tab.
+          One last trick: drag the sample image on the right into the palette to sample its colors.
+          Mintcn runs entirely in your browser — nothing uploaded, nothing stored. Your token stays
+          in your tab.
         </p>
       ),
       // Buttons + badges + data card as the closing tableau. Deliberately
