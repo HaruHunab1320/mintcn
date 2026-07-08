@@ -95,18 +95,18 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           point.
         </p>
       ),
-      focus: 'buttons',
+      focus: 'all',
       onEnter: () => actions.applyTheme(CYBERPUNK),
     },
     {
       id: 'themes',
       eyebrow: 'Chapter 2',
-      title: 'Eight curated themes. Click one.',
+      title: 'Nine curated themes. Click one.',
       body: (
         <p>
           Cyberpunk, Matrix, Amber CRT, Synthwave, Blade Runner, Tron, Ghost in the Shell,
-          Solarized. Each locks the five key palette tokens and derives the other 27 through the
-          same generator the palette bar uses.
+          Solarized, Brutal Editorial. Each locks the five key palette tokens and derives the other
+          27 through the same generator the palette bar uses.
         </p>
       ),
       focus: 'data',
@@ -122,7 +122,7 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           per-token locks. Drop an image and Mintcn samples its dominant hues into a palette.
         </p>
       ),
-      focus: 'forms',
+      focus: 'buttons',
       onEnter: () => actions.applyTheme(AMBER),
     },
     {
@@ -207,7 +207,7 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           overrides straight from your source — public or private.
         </p>
       ),
-      focus: 'nav',
+      focus: 'forms',
       onEnter: actions.resetToFixture,
     },
     {
