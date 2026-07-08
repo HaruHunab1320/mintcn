@@ -4,14 +4,14 @@ import {
   Canvas,
   type ForceState,
   type PreviewTheme,
-  type ShowcaseFocus,
+  type ShowcaseFocusInput,
   tokensToCssVars,
 } from '@/renderer';
 import { useProjectStore } from '@/store/project-store';
 import { OverrideCallout } from './override-callout';
 
 interface PreviewShellProps {
-  focus?: ShowcaseFocus;
+  focus?: ShowcaseFocusInput;
   /** Show the interactive override callout — set only for the overrides chapter. */
   showOverrideCallout?: boolean;
 }

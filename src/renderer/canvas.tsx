@@ -497,7 +497,7 @@ function ShowcaseAnimations() {
   );
 }
 
-const SHOWCASE_RENDERERS: Record<Exclude<ShowcaseFocus, 'all'>, () => ReactElement> = {
+const SHOWCASE_RENDERERS: Record<ShowcaseSection, () => ReactElement> = {
   buttons: ButtonsShowcase,
   badges: BadgesShowcase,
   forms: FormControlsShowcase,
@@ -509,11 +509,12 @@ const SHOWCASE_RENDERERS: Record<Exclude<ShowcaseFocus, 'all'>, () => ReactEleme
 };
 
 /**
- * Router between the stacked (default) and single-section preview layouts.
- * Kept a component (not just JSX in the parent) so React can recycle the
- * inner section instances across focus changes without unmounting.
+ * Router between the stacked (default), single-section, and multi-section
+ * preview layouts. Kept a component (not just JSX in the parent) so React
+ * can recycle the inner section instances across focus changes without
+ * unmounting.
  */
-function FocusedShowcase({ focus }: { focus: ShowcaseFocus }) {
+function FocusedShowcase({ focus }: { focus: ShowcaseFocusInput }) {
   if (focus === 'all') {
     return (
       <div className="flex flex-col gap-10">
@@ -528,12 +529,18 @@ function FocusedShowcase({ focus }: { focus: ShowcaseFocus }) {
       </div>
     );
   }
-  const Renderer = SHOWCASE_RENDERERS[focus];
-  return <Renderer />;
+  const sections: readonly ShowcaseSection[] = Array.isArray(focus) ? focus : [focus];
+  return (
+    <div className="flex flex-col gap-10">
+      {sections.map((id) => {
+        const Renderer = SHOWCASE_RENDERERS[id];
+        return <Renderer key={id} />;
+      })}
+    </div>
+  );
 }
 
-export const SHOWCASE_FOCUSES = [
-  'all',
+export const SHOWCASE_SECTIONS = [
   'buttons',
   'badges',
   'forms',
@@ -543,7 +550,19 @@ export const SHOWCASE_FOCUSES = [
   'calendar',
   'animations',
 ] as const;
+export type ShowcaseSection = (typeof SHOWCASE_SECTIONS)[number];
+
+export const SHOWCASE_FOCUSES = ['all', ...SHOWCASE_SECTIONS] as const;
+/** Single-value focus used by the chip filter in the editor's Canvas header. */
 export type ShowcaseFocus = (typeof SHOWCASE_FOCUSES)[number];
+
+/**
+ * Broader focus type also accepted by Canvas' prop — chapters on /learn can
+ * pass an ordered array of sections so the preview stacks 2–3 relevant
+ * subsections instead of leaving the tall right column mostly empty.
+ * The user-facing chip filter stays single-value.
+ */
+export type ShowcaseFocusInput = ShowcaseFocus | readonly ShowcaseSection[];
 
 const FOCUS_LABELS: Record<ShowcaseFocus, string> = {
   all: 'All',
@@ -566,11 +585,13 @@ interface CanvasProps {
   forceState?: ForceState;
   onForceStateChange?: (state: ForceState) => void;
   /**
-   * Which showcase sections to render. Default 'all' stacks every category
-   * (the editor's original behavior); any other value renders just that
-   * section, which the /learn page uses to keep the preview scroll-free.
+   * Which showcase sections to render. Accepts `'all'` (stack every
+   * category, the editor's default), a single section id (the chip
+   * filter picks one), or an ordered array of section ids so /learn
+   * chapters can stack a curated few. In array form the order is the
+   * render order.
    */
-  focus?: ShowcaseFocus;
+  focus?: ShowcaseFocusInput;
   onFocusChange?: (focus: ShowcaseFocus) => void;
   /**
    * When true, expose a chip-filter row inside the canvas header letting
@@ -607,7 +628,11 @@ export function Canvas({
 
   const theme = controlledTheme ?? localTheme;
   const forceState = controlledForceState ?? localForceState;
-  const focus = controlledFocus ?? localFocus;
+  const focus: ShowcaseFocusInput = controlledFocus ?? localFocus;
+  // Chip filter needs a single-value focus; when the caller passed an array
+  // (only /learn does today) fall back to 'all' so the chip stays coherent
+  // even if it were to be shown.
+  const chipFocus: ShowcaseFocus = Array.isArray(focus) ? 'all' : focus;
   const setTheme = (next: PreviewTheme) => {
     if (onThemeChange) onThemeChange(next);
     else setLocalTheme(next);
@@ -642,7 +667,7 @@ export function Canvas({
           variant="rail"
           leadingLabel="focus"
           ariaLabel="Showcase focus"
-          active={focus}
+          active={chipFocus}
           onChange={setFocus}
           options={SHOWCASE_FOCUSES.map((id) => ({ id, label: FOCUS_LABELS[id] }))}
         />

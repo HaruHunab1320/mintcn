@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { CURATED_THEMES, themeToSpec } from '@/editor/theme-gallery-data';
-import type { ShowcaseFocus } from '@/renderer';
+import type { ShowcaseFocusInput } from '@/renderer';
 import type { ColorValue, SemanticColorToken, TokenState } from '@/schema';
 import type { Theme } from '@/store/project-store';
 
@@ -29,8 +29,13 @@ export interface Chapter {
   eyebrow?: string;
   title: string;
   body: ReactNode;
-  /** Which showcase section the right-hand preview should isolate for this chapter. */
-  focus?: ShowcaseFocus;
+  /**
+   * Which showcase section(s) the right-hand preview should show for this
+   * chapter. Accepts `'all'`, a single section, or an ordered array — arrays
+   * stack the sections top-to-bottom in the preview column, filling the
+   * empty space we'd otherwise waste on a single small showcase.
+   */
+  focus?: ShowcaseFocusInput;
   /** Runs once each time the chapter scrolls into view. */
   onEnter?: () => void;
   /** Optional inline call-to-action rendered under the body. */
@@ -109,7 +114,9 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           27 through the same generator the palette bar uses.
         </p>
       ),
-      focus: 'data',
+      // Cards + badges + feedback show the palette touching surface / accent /
+      // destructive / muted all at once as the theme applies.
+      focus: ['data', 'badges', 'feedback'],
       onEnter: () => actions.applyTheme(MATRIX),
     },
     {
@@ -122,7 +129,9 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           per-token locks. Drop an image and Mintcn samples its dominant hues into a palette.
         </p>
       ),
-      focus: 'buttons',
+      // Colors pop hardest on buttons (variant + size grid) plus badges +
+      // feedback banners. Fills the column top-to-bottom.
+      focus: ['buttons', 'badges', 'feedback'],
       onEnter: () => actions.applyTheme(AMBER),
     },
     {
@@ -136,7 +145,9 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           overlay before export.
         </p>
       ),
-      focus: 'buttons',
+      // Buttons first (that's what the callout targets) then badges below to
+      // give the visitor another cva-variant surface to eye while typing.
+      focus: ['buttons', 'badges'],
       onEnter: () => {
         actions.setVariantClass(
           'button',
@@ -160,7 +171,9 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           down.
         </p>
       ),
-      focus: 'animations',
+      // Motion strip up top (the direct demo) + real Buttons below (which
+      // pick up the retimed transition-duration via the scoped CSS override).
+      focus: ['animations', 'buttons'],
       onEnter: () => {
         actions.setDuration('normal', '1400ms');
         actions.setDuration('slow', '2200ms');
@@ -177,7 +190,7 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           through class strings.
         </p>
       ),
-      focus: 'animations',
+      focus: ['animations', 'buttons'],
       onEnter: () => {
         actions.setDuration('normal', '900ms');
         actions.setDuration('slow', '1600ms');
@@ -207,7 +220,9 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           overrides straight from your source — public or private.
         </p>
       ),
-      focus: 'forms',
+      // Form (paste URL) up top + nav elements below to imply "walk through
+      // your project's components after connecting."
+      focus: ['forms', 'nav'],
       onEnter: actions.resetToFixture,
     },
     {
@@ -220,10 +235,10 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           server. Your token stays in your tab.
         </p>
       ),
-      // Focus on buttons for the closing CTA — the Motion strip would spin at
-      // whatever fast durations the fixture ships (200–300ms), which reads as
-      // chaotic right when we want a calm "click here" moment.
-      focus: 'buttons',
+      // Buttons + badges + data card as the closing tableau. Deliberately
+      // excludes the Motion strip — after `yours` reset the fixture defaults,
+      // the strip would spin at 200–300ms which reads chaotic on the CTA.
+      focus: ['buttons', 'badges', 'data'],
       cta: { label: 'Open the editor →', href: '/' },
     },
   ];
