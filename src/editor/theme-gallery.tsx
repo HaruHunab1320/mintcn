@@ -11,7 +11,6 @@ import {
   type ThemeCategory,
   themeToSpec,
 } from './theme-gallery-data';
-import { generateTheme } from './theme-generator';
 
 interface ThemeGalleryProps {
   open: boolean;
@@ -242,26 +241,15 @@ export function ThemeGallery({ open, onClose }: ThemeGalleryProps) {
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => applyTheme(generateTheme().spec)}
-                disabled={!document}
-                className="rounded-md border border-border px-2 py-1 text-[11px] text-foreground enabled:hover:border-ring disabled:opacity-40"
-                title="Roll a random full theme — palette, shape, shadows, motion, all of it"
-              >
-                🎲 Surprise me
-              </button>
-              <button
-                type="button"
-                onClick={() => setSaveMode(true)}
-                disabled={!document}
-                className="rounded-md border border-border px-2 py-1 text-[11px] text-foreground enabled:hover:border-ring disabled:opacity-40"
-                title="Save the current theme so you can come back to it later"
-              >
-                ＋ Save current
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setSaveMode(true)}
+              disabled={!document}
+              className="rounded-md border border-border px-2 py-1 text-[11px] text-foreground enabled:hover:border-ring disabled:opacity-40"
+              title="Save the current theme so you can come back to it later"
+            >
+              ＋ Save current
+            </button>
           )}
         </div>
         <p className="text-xs text-muted-foreground">

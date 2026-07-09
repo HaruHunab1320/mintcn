@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { PaletteBar } from '@/editor';
 import {
   Canvas,
+  type DevicePreset,
   type ForceState,
   MaximalGallery,
   type PreviewTheme,
@@ -13,6 +14,7 @@ import { DiffPreview } from './diff-preview';
 import { ImageDropDemo } from './image-drop-demo';
 import { MotionLab } from './motion-lab';
 import { OverrideCallout } from './override-callout';
+import { PreviewControls } from './preview-controls';
 import { RepoConnect } from './repo-connect';
 import { ThemeLab } from './theme-lab';
 
@@ -30,6 +32,8 @@ interface PreviewShellProps {
   showImageDemo?: boolean;
   /** Show the maximalist theme switcher above the gallery — set only for the "make it anything" chapter. */
   showThemeLab?: boolean;
+  /** Show the width / force-state / light-dark control panel — set only for the QA chapter. */
+  showPreviewControls?: boolean;
   /** The active chapter's preferred canvas mode; flips light/dark as chapters scroll by. */
   chapterTheme?: PreviewTheme;
 }
@@ -51,17 +55,29 @@ export function PreviewShell({
   showRepoConnect = false,
   showImageDemo = false,
   showThemeLab = false,
+  showPreviewControls = false,
   chapterTheme,
 }: PreviewShellProps) {
   const document = useProjectStore((s) => s.document);
   const [theme, setTheme] = useState<PreviewTheme>('light');
   const [forceState, setForceState] = useState<ForceState>('off');
+  const [device, setDevice] = useState<DevicePreset>('auto');
 
   // Follow the active chapter's preferred mode so the canvas flips light/dark
   // as the tour scrolls between themes (the user can still toggle within one).
   useEffect(() => {
     if (chapterTheme) setTheme(chapterTheme);
   }, [chapterTheme]);
+
+  // The width + force-state toggles are only meaningful on the QA chapter;
+  // reset them to defaults whenever we leave so a lingering "Mobile / Hover"
+  // doesn't follow the visitor into the next chapter.
+  useEffect(() => {
+    if (!showPreviewControls) {
+      setDevice('auto');
+      setForceState('off');
+    }
+  }, [showPreviewControls]);
 
   const rootStyle = useMemo(
     () => (document ? tokensToCssVars(document, theme) : undefined),
@@ -95,6 +111,16 @@ export function PreviewShell({
       ) : (
         <>
           {showThemeLab ? <ThemeLab onTheme={setTheme} /> : null}
+          {showPreviewControls ? (
+            <PreviewControls
+              device={device}
+              onDevice={setDevice}
+              forceState={forceState}
+              onForceState={setForceState}
+              theme={theme}
+              onTheme={setTheme}
+            />
+          ) : null}
           {showMotionLab ? <MotionLab visible /> : null}
           {showImageDemo ? <ImageDropDemo /> : null}
           <PaletteBar document={document} />
@@ -106,6 +132,8 @@ export function PreviewShell({
             onThemeChange={setTheme}
             forceState={forceState}
             onForceStateChange={setForceState}
+            device={device}
+            onDeviceChange={setDevice}
             focus={focus}
             showFocusControl={false}
             content={<MaximalGallery />}

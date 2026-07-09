@@ -15,6 +15,7 @@ import {
   ExportMenu,
   type ExportShape,
   encodeShareLink,
+  generateTheme,
   PaletteBar,
   type PanelId,
   PropertyPanel,
@@ -47,6 +48,7 @@ export default function App() {
   const load = useProjectStore((s) => s.load);
   const resetToInitial = useProjectStore((s) => s.resetToInitial);
   const applyPalette = useProjectStore((s) => s.applyPalette);
+  const applyTheme = useProjectStore((s) => s.applyTheme);
   const savePreset = useProjectStore((s) => s.savePreset);
   const temporal = useTemporal();
   const canUndo = temporal.pastStates.length > 0;
@@ -268,6 +270,14 @@ export default function App() {
               title="Browse curated themes"
             >
               🎨 Themes
+            </button>
+            <button
+              type="button"
+              onClick={() => applyTheme(generateTheme().spec)}
+              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs text-foreground hover:border-ring"
+              title="Roll a random full theme — palette, shape, shadows, motion, all of it"
+            >
+              🎲 Surprise me
             </button>
             <button
               type="button"

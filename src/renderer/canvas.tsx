@@ -513,74 +513,80 @@ function ShowcaseAnimations() {
 }
 
 /**
- * Purpose-built creative gallery for the /learn "make it anything" chapter.
- * Unlike the category showcases, every interactive element is rendered with an
- * EXPLICIT variant/size prop so the maximalist theme's cva-variant overrides
- * (gradients, circular/oversized buttons, float animation) reliably bite — the
- * override runtime keys on those props. Cards carry no cva variants, so they
- * demonstrate the global levers instead: themed radius + dramatic shadow scale.
+ * The /learn tour preview: a maximalist hero band followed by the full category
+ * showcase, so every chapter's theme visibly reskins a whole app — hero buttons,
+ * every button variant, badges, forms, nav, cards, calendar, feedback, motion.
+ *
+ * The hero renders each interactive element with an EXPLICIT variant/size prop
+ * so the theme's cva-variant overrides (gradients, circular/oversized buttons,
+ * float) reliably bite — the override runtime keys on those props. The showcase
+ * below adds breadth: components that carry no override still transform through
+ * the global levers (palette, radius, dramatic shadow scale, font, state).
  */
 export function MaximalGallery() {
   return (
-    <Section title="Make it anything">
-      <div className="flex flex-col gap-6">
-        <Card className="shadow-xl">
-          <CardHeader>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="default">Live theme</Badge>
-              <Badge variant="secondary">shadcn under the hood</Badge>
-            </div>
-            <CardTitle className="pt-2 text-2xl">Build the vibe, not just the palette.</CardTitle>
-            <CardDescription>
-              Same components, same tokens — radius, shadows, gradients, and motion pushed all the
-              way past “clean and modern.”
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap items-center gap-3">
-              <Button variant="default" size="lg">
-                Get started
-              </Button>
-              <Button variant="outline" size="lg">
-                Learn more
-              </Button>
-              <Button variant="default" size="icon" aria-label="favorite">
-                <Star />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Card className="shadow-md">
-            <CardHeader>
-              <CardTitle className="text-base">Elevated</CardTitle>
-              <CardDescription>shadow-md token</CardDescription>
-            </CardHeader>
-          </Card>
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-base">Floating</CardTitle>
-              <CardDescription>shadow-lg token</CardDescription>
-            </CardHeader>
-          </Card>
+    <div className="flex flex-col gap-10">
+      <Section title="Make it anything">
+        <div className="flex flex-col gap-6">
           <Card className="shadow-xl">
             <CardHeader>
-              <CardTitle className="text-base">Dramatic</CardTitle>
-              <CardDescription>shadow-xl token</CardDescription>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="default">Live theme</Badge>
+                <Badge variant="secondary">shadcn under the hood</Badge>
+              </div>
+              <CardTitle className="pt-2 text-2xl">Build the vibe, not just the palette.</CardTitle>
+              <CardDescription>
+                Same components, same tokens — radius, shadows, gradients, and motion pushed all the
+                way past “clean and modern.”
+              </CardDescription>
             </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button variant="default" size="lg">
+                  Get started
+                </Button>
+                <Button variant="outline" size="lg">
+                  Learn more
+                </Button>
+                <Button variant="default" size="icon" aria-label="favorite">
+                  <Star />
+                </Button>
+              </div>
+            </CardContent>
           </Card>
-        </div>
 
-        <Alert variant="default">
-          <Terminal className="size-4" />
-          <AlertTitle>Every pixel is a token or an override</AlertTitle>
-          <AlertDescription>
-            Nothing here is bespoke CSS — it all round-trips into the diff you'd ship.
-          </AlertDescription>
-        </Alert>
-      </div>
-    </Section>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Card className="shadow-md">
+              <CardHeader>
+                <CardTitle className="text-base">Elevated</CardTitle>
+                <CardDescription>shadow-md token</CardDescription>
+              </CardHeader>
+            </Card>
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-base">Floating</CardTitle>
+                <CardDescription>shadow-lg token</CardDescription>
+              </CardHeader>
+            </Card>
+            <Card className="shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-base">Dramatic</CardTitle>
+                <CardDescription>shadow-xl token</CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+
+          <Alert variant="default">
+            <Terminal className="size-4" />
+            <AlertTitle>Every pixel is a token or an override</AlertTitle>
+            <AlertDescription>
+              Nothing here is bespoke CSS — it all round-trips into the diff you'd ship.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </Section>
+      <FocusedShowcase focus="all" />
+    </div>
   );
 }
 
@@ -669,6 +675,9 @@ interface CanvasProps {
   /** Controlled force-state. Falls back to the useForceState hook when undefined. */
   forceState?: ForceState;
   onForceStateChange?: (state: ForceState) => void;
+  /** Controlled device/width preset. Falls back to local state when undefined. */
+  device?: DevicePreset;
+  onDeviceChange?: (device: DevicePreset) => void;
   /**
    * Which showcase sections to render. Accepts `'all'` (stack every
    * category, the editor's default), a single section id (the chip
@@ -708,6 +717,8 @@ export function Canvas({
   onThemeChange,
   forceState: controlledForceState,
   onForceStateChange,
+  device: controlledDevice,
+  onDeviceChange,
   focus: controlledFocus,
   onFocusChange,
   showFocusControl = true,
@@ -715,11 +726,16 @@ export function Canvas({
 }: CanvasProps) {
   const [localTheme, setLocalTheme] = useState<PreviewTheme>('light');
   const [localForceState, setLocalForceState] = useForceState();
-  const [device, setDevice] = useState<DevicePreset>('auto');
+  const [localDevice, setLocalDevice] = useState<DevicePreset>('auto');
   const [localFocus, setLocalFocus] = useState<ShowcaseFocus>('all');
 
   const theme = controlledTheme ?? localTheme;
   const forceState = controlledForceState ?? localForceState;
+  const device = controlledDevice ?? localDevice;
+  const setDevice = (next: DevicePreset) => {
+    if (onDeviceChange) onDeviceChange(next);
+    else setLocalDevice(next);
+  };
   const focus: ShowcaseFocusInput = controlledFocus ?? localFocus;
   // Chip filter needs a single-value focus; when the caller passed an array
   // (only /learn does today) fall back to 'all' so the chip stays coherent

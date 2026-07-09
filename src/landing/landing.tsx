@@ -78,6 +78,7 @@ export function Landing() {
   const showRepoConnect = activeChapterId === 'yours';
   const showImageDemo = activeChapterId === 'cta';
   const showThemeLab = activeChapterId === 'maximal';
+  const showPreviewControls = activeChapterId === 'test';
 
   return (
     <div className="grid h-screen grid-cols-1 bg-background text-foreground lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
@@ -94,6 +95,7 @@ export function Landing() {
         showRepoConnect={showRepoConnect}
         showImageDemo={showImageDemo}
         showThemeLab={showThemeLab}
+        showPreviewControls={showPreviewControls}
         chapterTheme={chapterTheme}
       />
     </div>

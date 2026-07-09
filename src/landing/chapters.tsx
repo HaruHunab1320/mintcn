@@ -223,8 +223,24 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
       preview: 'light',
     },
     {
-      id: 'diff',
+      id: 'test',
       eyebrow: 'Chapter 8',
+      title: 'Test it like it ships.',
+      body: (
+        <p>
+          Before you open a PR, poke it. Check every breakpoint with the width toggle, force{' '}
+          <span className="font-mono">hover</span>, <span className="font-mono">focus</span>, and{' '}
+          <span className="font-mono">active</span> without chasing your cursor, and confirm light
+          and dark both hold up — all from the panel on the right, exactly like the editor's canvas
+          header.
+        </p>
+      ),
+      preview: 'light',
+      onEnter: () => actions.applyTheme(GLASS),
+    },
+    {
+      id: 'diff',
+      eyebrow: 'Chapter 9',
       title: 'Every edit becomes a clean diff.',
       body: (
         <p>
@@ -237,7 +253,7 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
     },
     {
       id: 'yours',
-      eyebrow: 'Chapter 9',
+      eyebrow: 'Chapter 10',
       title: 'Point it at your repo.',
       body: (
         <p>

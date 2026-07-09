@@ -16,3 +16,4 @@ export * from './panel-section';
 export * from './property-panel';
 export * from './share-link';
 export * from './theme-gallery';
+export * from './theme-generator';
