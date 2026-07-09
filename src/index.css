@@ -154,3 +154,26 @@
     transform: translateY(5px);
   }
 }
+
+/* Showcase keyframes referenced by the maximalist /learn themes via arbitrary
+   `animate-[mintcn-float_…]` utilities baked into cva-variant overrides. Kept
+   static here (not document keyframes) so they're always available to the live
+   preview; the override strings live in src/ so Tailwind generates the utils. */
+@keyframes mintcn-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes mintcn-wobble {
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}

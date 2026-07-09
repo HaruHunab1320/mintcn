@@ -71,11 +71,13 @@ export function Landing() {
 
   const activeChapter = chapters.find((c) => c.id === activeChapterId);
   const focus = activeChapter?.focus ?? 'all';
+  const chapterTheme = activeChapter?.preview ?? 'light';
   const showOverrideCallout = activeChapterId === 'overrides';
   const showMotionLab = activeChapterId === 'motion-duration';
   const showDiff = activeChapterId === 'diff';
   const showRepoConnect = activeChapterId === 'yours';
   const showImageDemo = activeChapterId === 'cta';
+  const showThemeLab = activeChapterId === 'maximal';
 
   return (
     <div className="grid h-screen grid-cols-1 bg-background text-foreground lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
@@ -91,6 +93,8 @@ export function Landing() {
         showDiff={showDiff}
         showRepoConnect={showRepoConnect}
         showImageDemo={showImageDemo}
+        showThemeLab={showThemeLab}
+        chapterTheme={chapterTheme}
       />
     </div>
   );

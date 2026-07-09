@@ -74,6 +74,12 @@ interface ProjectState {
     radius: string;
     fontFamily: TokenState['typography']['fontFamily'];
     shadows?: TokenState['shadows'];
+    /** Optional interaction-state token overrides (merged onto current). */
+    states?: Partial<StateTokens>;
+    /** Component overrides the theme installs (gradients, circular buttons…). */
+    overrides?: ComponentOverride[];
+    /** Component ids to clear first, so switching themes doesn't stack looks. */
+    clearOverrideIds?: string[];
   }) => void;
   setRadius: (value: string) => void;
   setFontFamily: (family: FontFamilyKey, value: string) => void;
@@ -194,9 +200,25 @@ export const useProjectStore = create<ProjectState>()(
       applyTheme: (spec) =>
         set((state) => {
           const document = requireDocument(state.document);
+          // Overrides: a curated theme owns a managed set of component overrides
+          // (button/badge/alert). Clear those first so a maximalist look doesn't
+          // bleed into the next theme, then install this theme's own. Overrides
+          // on components outside clearOverrideIds are left untouched.
+          let overrides = document.overrides;
+          if (spec.clearOverrideIds && spec.clearOverrideIds.length > 0) {
+            const clear = new Set(spec.clearOverrideIds);
+            overrides = overrides.filter((o) => !clear.has(o.componentId));
+          }
+          if (spec.overrides && spec.overrides.length > 0) {
+            overrides = [...overrides, ...spec.overrides];
+          }
+          const states = spec.states
+            ? { ...(document.tokens.states ?? DEFAULT_STATE_TOKENS), ...spec.states }
+            : document.tokens.states;
           return {
             document: {
               ...document,
+              overrides,
               tokens: {
                 ...document.tokens,
                 colors: spec.colors,
@@ -211,6 +233,7 @@ export const useProjectStore = create<ProjectState>()(
                 // current shadows so an ad-hoc palette change doesn't wipe
                 // the user's shadow tokens.
                 ...(spec.shadows ? { shadows: spec.shadows } : {}),
+                ...(spec.states ? { states } : {}),
               },
             },
           };

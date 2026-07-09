@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PaletteBar } from '@/editor';
 import {
   Canvas,
   type ForceState,
+  MaximalGallery,
   type PreviewTheme,
   type ShowcaseFocusInput,
   tokensToCssVars,
@@ -13,6 +14,7 @@ import { ImageDropDemo } from './image-drop-demo';
 import { MotionLab } from './motion-lab';
 import { OverrideCallout } from './override-callout';
 import { RepoConnect } from './repo-connect';
+import { ThemeLab } from './theme-lab';
 
 interface PreviewShellProps {
   focus?: ShowcaseFocusInput;
@@ -26,6 +28,10 @@ interface PreviewShellProps {
   showRepoConnect?: boolean;
   /** Show the draggable sample-image card above the palette — set only for the CTA chapter. */
   showImageDemo?: boolean;
+  /** Show the maximalist theme switcher above the gallery — set only for the "make it anything" chapter. */
+  showThemeLab?: boolean;
+  /** The active chapter's preferred canvas mode; flips light/dark as chapters scroll by. */
+  chapterTheme?: PreviewTheme;
 }
 
 /**
@@ -44,10 +50,18 @@ export function PreviewShell({
   showDiff = false,
   showRepoConnect = false,
   showImageDemo = false,
+  showThemeLab = false,
+  chapterTheme,
 }: PreviewShellProps) {
   const document = useProjectStore((s) => s.document);
   const [theme, setTheme] = useState<PreviewTheme>('light');
   const [forceState, setForceState] = useState<ForceState>('off');
+
+  // Follow the active chapter's preferred mode so the canvas flips light/dark
+  // as the tour scrolls between themes (the user can still toggle within one).
+  useEffect(() => {
+    if (chapterTheme) setTheme(chapterTheme);
+  }, [chapterTheme]);
 
   const rootStyle = useMemo(
     () => (document ? tokensToCssVars(document, theme) : undefined),
@@ -80,9 +94,12 @@ export function PreviewShell({
         <RepoConnect />
       ) : (
         <>
+          {showThemeLab ? <ThemeLab onTheme={setTheme} /> : null}
           {showMotionLab ? <MotionLab visible /> : null}
           {showImageDemo ? <ImageDropDemo /> : null}
           <PaletteBar document={document} />
+          {/* The tour always renders the maximalist gallery so each chapter's
+              theme visibly reskins a rich set of components. */}
           <Canvas
             document={document}
             theme={theme}
@@ -91,6 +108,7 @@ export function PreviewShell({
             onForceStateChange={setForceState}
             focus={focus}
             showFocusControl={false}
+            content={<MaximalGallery />}
           />
         </>
       )}

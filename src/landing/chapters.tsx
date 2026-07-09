@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { CURATED_THEMES, themeToSpec } from '@/editor/theme-gallery-data';
-import type { ShowcaseFocusInput } from '@/renderer';
+import type { PreviewTheme, ShowcaseFocusInput } from '@/renderer';
 import type { ColorValue, SemanticColorToken, TokenState } from '@/schema';
 import type { Theme } from '@/store/project-store';
 
@@ -30,12 +30,13 @@ export interface Chapter {
   title: string;
   body: ReactNode;
   /**
-   * Which showcase section(s) the right-hand preview should show for this
-   * chapter. Accepts `'all'`, a single section, or an ordered array — arrays
-   * stack the sections top-to-bottom in the preview column, filling the
-   * empty space we'd otherwise waste on a single small showcase.
+   * Which showcase section(s) the right-hand preview should show. Mostly moot
+   * now that the tour chapters render the maximalist gallery, but kept for the
+   * few chapters that still drive the category showcase.
    */
   focus?: ShowcaseFocusInput;
+  /** Preferred preview canvas mode — dark themes (neon/terminal) read best dark. */
+  preview?: PreviewTheme;
   /** Runs once each time the chapter scrolls into view. */
   onEnter?: () => void;
   /** Optional inline call-to-action rendered under the body. */
@@ -46,23 +47,35 @@ export interface Chapter {
   };
 }
 
-// Preresolved theme specs (deterministic, so the demo always looks the same).
+// Preresolved maximalist theme specs (deterministic → the tour looks the same
+// every scroll). Each `themeToSpec` bundle carries palette + radius + shadows +
+// font + interaction state + the cva-variant overrides that make the look wild.
 function specById(id: string) {
   const theme = CURATED_THEMES.find((t) => t.id === id);
   if (!theme) throw new Error(`Landing: missing curated theme "${id}"`);
   return themeToSpec(theme);
 }
-const CYBERPUNK = specById('cyberpunk-2077');
-const MATRIX = specById('matrix-terminal');
-const AMBER = specById('amber-crt');
+const GLASS = specById('aurora-glass');
+const NEON = specById('neon-arcade');
+const VAPOR = specById('vaporwave');
+const BRUTAL = specById('brutalist-pop');
+const CLAY = specById('claymorphism');
+const TERMINAL = specById('terminal-green');
+
+// The brutalist button, expressed as a replaceWith string so the overrides
+// chapter can surface it in the editable callout — the exact classes behind
+// the look, live-editable. Must stay literal so Tailwind emits the utilities.
+const BRUTAL_BUTTON =
+  'rounded-none border-2 border-black bg-[#3b2cf5] text-white font-bold uppercase tracking-wide shadow-[6px_6px_0_0_#000] transition-all hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[3px_3px_0_0_#000]';
+const BUTTON_DEFAULT_ORIGINAL = 'bg-primary text-primary-foreground hover:bg-primary/90';
 
 /**
- * The scripted set of chapters shown on /learn. Each has a scroll-in action
- * that dispatches into the same Zustand store the editor uses, so the demo
- * on the right visibly reacts as the visitor reads.
- *
- * Chapters are intentionally punchy — this is a marketing lander, not
- * documentation. The full docs live in the roadmap + README.
+ * The scripted /learn tour. Every content chapter reskins the ENTIRE preview
+ * with a distinct maximalist theme as it scrolls in — glass, neon, vaporwave,
+ * brutalist, clay, terminal — so the visitor watches the same components morph
+ * through radically different design languages. Each chapter's copy teaches the
+ * lever that theme leans on hardest, and the interactive panels (palette bar,
+ * motion lab, override callout, theme switcher) layer on top where they fit.
  */
 export function buildChapters(actions: ChapterActions): Chapter[] {
   return [
@@ -76,14 +89,15 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
             Mintcn is a visual editor for shadcn/ui that reads your real project source, edits it
             visually, and hands you back a clean diff you can PR.
           </p>
-          <p className="text-sm text-muted-foreground">Scroll to see it in action ↓</p>
+          <p className="text-sm text-muted-foreground">
+            Scroll — every chapter reskins the whole app in front of you ↓
+          </p>
         </>
       ),
-      focus: 'all',
+      preview: 'light',
       onEnter: () => {
+        // Clean shadcn baseline, so the first scroll is a dramatic before→after.
         actions.resetToFixture();
-        // Nudge motion tokens to a "medium/pleasant" baseline so the Motion
-        // chapter later has visibly different numbers to demo against.
         actions.setDuration('normal', '400ms');
         actions.setEasing('out', 'cubic-bezier(0.16, 1, 0.3, 1)');
       },
@@ -95,71 +109,65 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
       title: 'The whole app IS the preview.',
       body: (
         <p>
-          Every panel, border, and button on the right uses the same shadcn tokens you're editing.
-          Watch the entire canvas repaint when a theme applies — that's the tool proving its own
-          point.
+          Watch every card, border, and button repaint at once — glassy gradients, pillowy radii,
+          buttons that float. Same components you started with, an entirely new skin. That's the
+          tool proving its own point.
         </p>
       ),
-      focus: 'all',
-      onEnter: () => actions.applyTheme(CYBERPUNK),
+      preview: 'light',
+      onEnter: () => actions.applyTheme(GLASS),
     },
     {
       id: 'themes',
       eyebrow: 'Chapter 2',
-      title: 'Nine curated themes. Click one.',
+      title: 'A theme is more than a palette.',
       body: (
         <p>
-          Cyberpunk, Matrix, Amber CRT, Synthwave, Blade Runner, Tron, Ghost in the Shell,
-          Solarized, Brutal Editorial. Each locks the five key palette tokens and derives the other
-          27 through the same generator the palette bar uses.
+          One click flips shape, shadow, motion, font, and the canvas to dark — here, a neon arcade.
+          Curated themes lock five key colors and derive the rest, then layer on the radius, glow,
+          and circular buttons that make the vibe read instantly.
         </p>
       ),
-      // A theme repaints everything, so show a broad spread — cards, badges,
-      // feedback, nav, and the calendar — packed into the masonry so the whole
-      // palette shift lands at once instead of one lonely card.
-      focus: ['data', 'badges', 'feedback', 'nav', 'calendar'],
-      onEnter: () => actions.applyTheme(MATRIX),
+      preview: 'dark',
+      onEnter: () => actions.applyTheme(NEON),
     },
     {
       id: 'palette',
       eyebrow: 'Chapter 3',
-      title: 'Or hand-paint your own.',
+      title: 'Hand-paint the five that matter.',
       body: (
         <p>
-          OKLCH color wheel, chroma/lightness sliders, and a Coolers-style palette bar with
-          per-token locks. Drop an image and Mintcn samples its dominant hues into a palette.
+          The five key colors on the right seed the entire scheme. Nudge one, hit generate, or drop
+          an image to sample — the whole vaporwave cascade re-derives across every component in real
+          time.
         </p>
       ),
-      // Colors pop hardest on buttons (variant + size grid), badges, and
-      // feedback banners; forms + a data card round out the masonry so the
-      // hand-painted palette touches inputs and surfaces too.
-      focus: ['buttons', 'badges', 'feedback', 'forms', 'data'],
-      onEnter: () => actions.applyTheme(AMBER),
+      preview: 'dark',
+      onEnter: () => actions.applyTheme(VAPOR),
     },
     {
       id: 'overrides',
       eyebrow: 'Chapter 4',
-      title: 'Rewrite any cva variant.',
+      title: 'Every wild button is just a class string.',
       body: (
         <p>
-          Overrides target specific variant options — `size.sm`, `variant.destructive` — with the
-          exact Tailwind class string you want, per breakpoint. Live-previewed via a tailwind-merge
-          overlay before export.
+          None of this is bespoke CSS. Each override targets one cva variant with the exact Tailwind
+          classes you want — read the string powering this brutalist button on the right, and edit
+          it live.
         </p>
       ),
-      // Buttons first (that's what the callout targets), then badges + a data
-      // card + nav so the radius bump (rounded-full / 1rem) reads across
-      // several component families, not just the one button.
-      focus: ['buttons', 'badges', 'data', 'nav'],
+      preview: 'light',
       onEnter: () => {
+        actions.applyTheme(BRUTAL);
+        // Re-express the primary button as an editable replaceWith so the
+        // override callout can surface + edit the exact classes.
         actions.setVariantClass(
           'button',
-          'size',
-          'sm',
-          'h-9 gap-1.5 rounded-full px-4 text-sm',
-          'h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5',
+          'variant',
+          'default',
+          BRUTAL_BUTTON,
+          BUTTON_DEFAULT_ORIGINAL,
         );
-        actions.setRadius('1rem');
       },
     },
     {
@@ -168,18 +176,15 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
       title: 'Timing tokens, live.',
       body: (
         <p>
-          Durations and easing curves are just CSS custom properties. Drag the sliders and pick a
-          curve on the right — every animation driven by{' '}
-          <span className="font-mono">--duration-*</span> and{' '}
-          <span className="font-mono">--ease-*</span> retimes on its next tick, and so do the real
-          buttons and tabs below.
+          Durations and easing curves are just CSS custom properties. Drag the sliders on the right
+          — every animation driven by <span className="font-mono">--duration-*</span> and{' '}
+          <span className="font-mono">--ease-*</span> retimes on its next tick, right down to the
+          clay UI's soft press.
         </p>
       ),
-      // The editable MotionLab panel (rendered by the preview shell for this
-      // chapter) owns the animated strip + token controls; the focus here is
-      // real interactive components that visibly pick up the retimed easing.
-      focus: ['buttons', 'nav', 'data'],
+      preview: 'light',
       onEnter: () => {
+        actions.applyTheme(CLAY);
         actions.setDuration('normal', '1400ms');
         actions.setDuration('slow', '2200ms');
       },
@@ -192,11 +197,12 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
         <p>
           A draggable cubic-bezier editor with a live preview dot. The curve token flows through
           every element that uses <span className="font-mono">var(--ease-out)</span> — no hunting
-          through class strings.
+          through class strings, phosphor glow included.
         </p>
       ),
-      focus: ['animations', 'buttons'],
+      preview: 'dark',
       onEnter: () => {
+        actions.applyTheme(TERMINAL);
         actions.setDuration('normal', '900ms');
         actions.setDuration('slow', '1600ms');
         actions.setEasing('out', 'cubic-bezier(0.68, -0.6, 0.32, 1.6)');
@@ -204,23 +210,34 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
       },
     },
     {
-      id: 'diff',
+      id: 'maximal',
       eyebrow: 'Chapter 7',
+      title: 'Now you drive.',
+      body: (
+        <p>
+          You've watched six reskins scroll by — every one a bundle of tokens and overrides. Take
+          the wheel: click a preset, or roll the dice for a brand-new UI experience. Palette, shape,
+          shadow, motion, all of it, and every pixel ships in the diff.
+        </p>
+      ),
+      preview: 'light',
+    },
+    {
+      id: 'diff',
+      eyebrow: 'Chapter 8',
       title: 'Every edit becomes a clean diff.',
       body: (
         <p>
           Mintcn re-emits your source files with minimal churn — no unrelated formatting changes.
-          The panel on the right is the real diff of everything you just changed while scrolling,
-          framed as the GitHub pull request you'd open. Copy it, download a zip, or push the branch.
+          The panel on the right is the real diff of everything you just rolled through, framed as
+          the GitHub pull request you'd open. Copy it, download a zip, or push the branch.
         </p>
       ),
-      // No focus needed — the preview shell swaps the component canvas for the
-      // live DiffPreview on this chapter.
-      focus: 'all',
+      preview: 'light',
     },
     {
       id: 'yours',
-      eyebrow: 'Chapter 8',
+      eyebrow: 'Chapter 9',
       title: 'Point it at your repo.',
       body: (
         <p>
@@ -229,9 +246,7 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
           in your browser.
         </p>
       ),
-      // The preview swaps to the RepoConnect demo for this chapter (see the
-      // preview shell), so the focus here is unused.
-      focus: ['forms', 'nav'],
+      preview: 'light',
       onEnter: actions.resetToFixture,
     },
     {
@@ -240,15 +255,13 @@ export function buildChapters(actions: ChapterActions): Chapter[] {
       title: 'Ready to edit yours?',
       body: (
         <p className="text-base text-muted-foreground">
-          One last trick: drag the sample image on the right into the palette to sample its colors.
+          One last trick: drag the sample image on the right into the palette to recolor everything.
           Mintcn runs entirely in your browser — nothing uploaded, nothing stored. Your token stays
           in your tab.
         </p>
       ),
-      // Buttons + badges + data card as the closing tableau. Deliberately
-      // excludes the Motion strip — after `yours` reset the fixture defaults,
-      // the strip would spin at 200–300ms which reads chaotic on the CTA.
-      focus: ['buttons', 'badges', 'data'],
+      preview: 'light',
+      onEnter: () => actions.applyTheme(GLASS),
       cta: { label: 'Open the editor →', href: '/' },
     },
   ];

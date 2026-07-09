@@ -512,6 +512,78 @@ function ShowcaseAnimations() {
   );
 }
 
+/**
+ * Purpose-built creative gallery for the /learn "make it anything" chapter.
+ * Unlike the category showcases, every interactive element is rendered with an
+ * EXPLICIT variant/size prop so the maximalist theme's cva-variant overrides
+ * (gradients, circular/oversized buttons, float animation) reliably bite — the
+ * override runtime keys on those props. Cards carry no cva variants, so they
+ * demonstrate the global levers instead: themed radius + dramatic shadow scale.
+ */
+export function MaximalGallery() {
+  return (
+    <Section title="Make it anything">
+      <div className="flex flex-col gap-6">
+        <Card className="shadow-xl">
+          <CardHeader>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="default">Live theme</Badge>
+              <Badge variant="secondary">shadcn under the hood</Badge>
+            </div>
+            <CardTitle className="pt-2 text-2xl">Build the vibe, not just the palette.</CardTitle>
+            <CardDescription>
+              Same components, same tokens — radius, shadows, gradients, and motion pushed all the
+              way past “clean and modern.”
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button variant="default" size="lg">
+                Get started
+              </Button>
+              <Button variant="outline" size="lg">
+                Learn more
+              </Button>
+              <Button variant="default" size="icon" aria-label="favorite">
+                <Star />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Card className="shadow-md">
+            <CardHeader>
+              <CardTitle className="text-base">Elevated</CardTitle>
+              <CardDescription>shadow-md token</CardDescription>
+            </CardHeader>
+          </Card>
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-base">Floating</CardTitle>
+              <CardDescription>shadow-lg token</CardDescription>
+            </CardHeader>
+          </Card>
+          <Card className="shadow-xl">
+            <CardHeader>
+              <CardTitle className="text-base">Dramatic</CardTitle>
+              <CardDescription>shadow-xl token</CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+
+        <Alert variant="default">
+          <Terminal className="size-4" />
+          <AlertTitle>Every pixel is a token or an override</AlertTitle>
+          <AlertDescription>
+            Nothing here is bespoke CSS — it all round-trips into the diff you'd ship.
+          </AlertDescription>
+        </Alert>
+      </div>
+    </Section>
+  );
+}
+
 const SHOWCASE_RENDERERS: Record<ShowcaseSection, () => ReactElement> = {
   buttons: ButtonsShowcase,
   badges: BadgesShowcase,
@@ -612,6 +684,12 @@ interface CanvasProps {
    * it drives focus from the scroll position.
    */
   showFocusControl?: boolean;
+  /**
+   * Custom preview body rendered inside the same PreviewRoot + OverrideProvider
+   * context in place of the category showcases (used by /learn's maximalist
+   * chapter to render a bespoke gallery that still picks up tokens + overrides).
+   */
+  content?: ReactNode;
 }
 
 /**
@@ -633,6 +711,7 @@ export function Canvas({
   focus: controlledFocus,
   onFocusChange,
   showFocusControl = true,
+  content,
 }: CanvasProps) {
   const [localTheme, setLocalTheme] = useState<PreviewTheme>('light');
   const [localForceState, setLocalForceState] = useForceState();
@@ -701,7 +780,7 @@ export function Canvas({
           className="min-h-[480px] p-8"
         >
           <OverrideProvider document={document}>
-            <FocusedShowcase focus={focus} />
+            {content ?? <FocusedShowcase focus={focus} />}
           </OverrideProvider>
         </PreviewRoot>
       </section>
