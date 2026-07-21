@@ -1,7 +1,5 @@
 # Mintcn
 
-> Working codename — rename freely. A visual customization layer and code generator for shadcn-style component systems.
-
 **Mintcn** is a design-time editor for shadcn/ui codebases. You select a component, change its styling and behavior visually, watch a live preview update instantly, inspect exactly which tokens and classes changed, and then export the result as **clean, commit-ready code** that drops straight into a real project.
 
 It is deliberately **not another component library**. shadcn/ui already solved component distribution by shipping source code you own. Mintcn extends that model with the missing piece: a visual editor and deterministic code generator that sits *on top of* the components you already have.
